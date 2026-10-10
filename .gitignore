@@ -1,3 +1,8 @@
 Blinx_2.xiso
 game_files/
 ghidra_12.1.4_PUBLIC/
+
+# Blinx 2 asset extraction: copyrighted data, upstream tool clones, generated logs
+assets/extracted/
+assets/tools/
+assets/logs/
