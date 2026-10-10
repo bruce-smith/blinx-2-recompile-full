@@ -1,0 +1,82 @@
+py -3 -m tools.abi_analysis E:\Blinx2project\game_files\default.xbe -v
+
+Here is the output
+
+Loaded 21829 functions, 34830 classifications
+Loading XBE from E:\Blinx2project\game_files\default.xbe ...
+XBE base=0x00010000, 73 sections
+  <XbeSection '.text' va=0x00012000 vsize=0x2CEB58 raw=0x00002000 rsize=0x2CEB58>
+  <XbeSection 'D3D' va=0x002E0B60 vsize=0x13C44 raw=0x002D1000 rsize=0x10378>
+  <XbeSection 'D3DX' va=0x002F47C0 vsize=0x1C528 raw=0x002E2000 rsize=0x1C520>
+  <XbeSection 'XGRPH' va=0x00310D00 vsize=0x21298 raw=0x002FF000 rsize=0x2061C>
+  <XbeSection 'DSOUND' va=0x00331FA0 vsize=0x838C raw=0x00320000 rsize=0x8124>
+  <XbeSection 'PSFD_I' va=0x0033A340 vsize=0x404 raw=0x00329000 rsize=0x404>
+  <XbeSection 'PSFD_B' va=0x0033A760 vsize=0x8D0 raw=0x0032A000 rsize=0x8D0>
+  <XbeSection 'PSFD_P' va=0x0033B040 vsize=0x64C raw=0x0032B000 rsize=0x64C>
+  <XbeSection 'PSFD00' va=0x0033B6A0 vsize=0x1768 raw=0x0032C000 rsize=0x1768>
+  <XbeSection 'SRCADV' va=0x0033CE20 vsize=0x2309C raw=0x0032E000 rsize=0x2309C>
+  <XbeSection 'SRCED' va=0x0035FEC0 vsize=0x1CA8 raw=0x02329000 rsize=0x1CA8>
+  <XbeSection 'SRCAC' va=0x00361B80 vsize=0x4F58 raw=0x02324000 rsize=0x4F58>
+  <XbeSection 'XPP' va=0x00366AE0 vsize=0x7E84 raw=0x00352000 rsize=0x7E84>
+  <XbeSection '.rdata' va=0x0036E980 vsize=0x72B2C raw=0x0035A000 rsize=0x72B1C>
+  <XbeSection '.data' va=0x003E14C0 vsize=0xC5C67C raw=0x003CD000 rsize=0xD2CE4>
+  <XbeSection 'DOLBY' va=0x0103DB40 vsize=0x7180 raw=0x004A0000 rsize=0x716C>
+  <XbeSection 'DATED' va=0x01044CC0 vsize=0xE8618 raw=0x0232B000 rsize=0xE8618>
+  <XbeSection 'DATADV' va=0x0112D2E0 vsize=0x330C raw=0x004A8000 rsize=0x3300>
+  <XbeSection 'MDLGIM' va=0x01130600 vsize=0x5B8C4 raw=0x004AC000 rsize=0x5B8C4>
+  <XbeSection 'MDLAO' va=0x0118BEE0 vsize=0x10EAF0 raw=0x00508000 rsize=0x10EAF0>
+  <XbeSection 'MDLGA' va=0x0129A9E0 vsize=0x1454A0 raw=0x00617000 rsize=0x145498>
+  <XbeSection 'G2' va=0x013DFE80 vsize=0x247B0 raw=0x0242E000 rsize=0x247A8>
+  <XbeSection 'M93' va=0x01404640 vsize=0xF603C raw=0x01C49000 rsize=0xF6038>
+  <XbeSection 'M91' va=0x014FA680 vsize=0x768C4 raw=0x01BD2000 rsize=0x768C4>
+  <XbeSection 'G5' va=0x01570F60 vsize=0x25120 raw=0x02499000 rsize=0x25120>
+  <XbeSection 'M41' va=0x01596080 vsize=0x11E9DC raw=0x01588000 rsize=0x11E9DC>
+  <XbeSection 'M44' va=0x016B4A60 vsize=0x11A270 raw=0x01764000 rsize=0x11A270>
+  <XbeSection 'G3' va=0x017CECE0 vsize=0x420 raw=0x0075D000 rsize=0x420>
+  <XbeSection 'M13' va=0x017CF100 vsize=0x13E6C0 raw=0x00BA4000 rsize=0x13E6B8>
+  <XbeSection 'G1' va=0x0190D7C0 vsize=0xA458 raw=0x02423000 rsize=0xA450>
+  <XbeSection 'M11' va=0x01917C20 vsize=0x15677C raw=0x00A4D000 rsize=0x15677C>
+  <XbeSection 'DSKERDAT' va=0x01A6E3A0 vsize=0xC300 raw=0x0075E000 rsize=0xC300>
+  <XbeSection 'MDLBS5' va=0x01A7A6A0 vsize=0x42E64 raw=0x01E13000 rsize=0x42E64>
+  <XbeSection 'MDLPL' va=0x01ABD520 vsize=0xDF2E8 raw=0x0076B000 rsize=0xDF2E8>
+  <XbeSection 'MDLEN' va=0x01B9C820 vsize=0x22EDC raw=0x0084B000 rsize=0x22EDC>
+  <XbeSection 'M24' va=0x01BBF700 vsize=0x11CC84 raw=0x010BB000 rsize=0x11CC80>
+  <XbeSection 'M61' va=0x01CDC3A0 vsize=0x2440C raw=0x01AFE000 rsize=0x24408>
+  <XbeSection 'M31' va=0x01D007C0 vsize=0x184034 raw=0x011D8000 rsize=0x184034>
+  <XbeSection 'M53' va=0x01E84800 vsize=0xDD698 raw=0x019DC000 rsize=0xDD694>
+  <XbeSection 'G4' va=0x01F61EA0 vsize=0x451EC raw=0x02453000 rsize=0x451EC>
+  <XbeSection 'M33' va=0x01FA70A0 vsize=0x10A1E0 raw=0x0135D000 rsize=0x10A1E0>
+  <XbeSection 'M23' va=0x020B1280 vsize=0xF0A74 raw=0x00FCA000 rsize=0xF0A70>
+  <XbeSection 'M21' va=0x021A1D00 vsize=0x1CAF74 raw=0x00DFF000 rsize=0x1CAF70>
+  <XbeSection 'M14' va=0x0236CC80 vsize=0x11BE04 raw=0x00CE3000 rsize=0x11BE04>
+  <XbeSection 'MOTPL' va=0x02488AA0 vsize=0x1DCBAC raw=0x0086E000 rsize=0x1DCBAC>
+  <XbeSection 'M34' va=0x02665660 vsize=0x11FD24 raw=0x01468000 rsize=0x11FD20>
+  <XbeSection 'M121' va=0x027853A0 vsize=0x8419C raw=0x01D8E000 rsize=0x84198>
+  <XbeSection 'GIMCOM' va=0x02809540 vsize=0x63A8 raw=0x022CD000 rsize=0x63A8>
+  <XbeSection 'M51' va=0x0280F900 vsize=0x15C164 raw=0x0187F000 rsize=0x15C160>
+  <XbeSection 'M43' va=0x0296BA80 vsize=0xBC028 raw=0x016A7000 rsize=0xBC028>
+  <XbeSection 'M111' va=0x02A27AC0 vsize=0x4D594 raw=0x01D40000 rsize=0x4D590>
+  <XbeSection 'MDLMG' va=0x02A75060 vsize=0xDDD0 raw=0x022BF000 rsize=0xDDC8>
+  <XbeSection 'M64' va=0x02A82E40 vsize=0xAECF0 raw=0x01B23000 rsize=0xAECEC>
+  <XbeSection 'M54' va=0x02B31B40 vsize=0x43F80 raw=0x01ABA000 rsize=0x43F7C>
+  <XbeSection 'MDLBK' va=0x02B75AC0 vsize=0x20B44 raw=0x02281000 rsize=0x20B44>
+  <XbeSection 'MDLRT' va=0x02B96620 vsize=0x9B54 raw=0x02277000 rsize=0x9B54>
+  <XbeSection 'MDLBN' va=0x02BA0180 vsize=0x12E20 raw=0x02264000 rsize=0x12E20>
+  <XbeSection 'MDLBT' va=0x02BB2FA0 vsize=0x9818 raw=0x0225A000 rsize=0x9818>
+  <XbeSection 'MDLST' va=0x02BBC7C0 vsize=0x18004 raw=0x02241000 rsize=0x18004>
+  <XbeSection 'MDLTC' va=0x02BD47E0 vsize=0x10450 raw=0x02230000 rsize=0x10448>
+  <XbeSection 'MDLSK' va=0x02BE4C40 vsize=0xBD88 raw=0x02224000 rsize=0xBD80>
+  <XbeSection 'MDLOB' va=0x02BF09E0 vsize=0x29854 raw=0x021FA000 rsize=0x29854>
+  <XbeSection 'MDLSR' va=0x02C1A240 vsize=0x2DCE0 raw=0x021CC000 rsize=0x2DCE0>
+  <XbeSection 'MDLNT' va=0x02C47F20 vsize=0x20E24 raw=0x021AB000 rsize=0x20E24>
+  <XbeSection 'MDLYP' va=0x02C68D60 vsize=0x25580 raw=0x02185000 rsize=0x25580>
+  <XbeSection 'MDLTT' va=0x02C8E2E0 vsize=0x19F70 raw=0x0216B000 rsize=0x19F70>
+  <XbeSection 'MDLKF' va=0x02CA8260 vsize=0x1B738 raw=0x0214F000 rsize=0x1B738>
+  <XbeSection 'MSHIP' va=0x02CC39A0 vsize=0xEF6C raw=0x02414000 rsize=0xEF68>
+  <XbeSection 'MDLBEN' va=0x02CD2920 vsize=0x1C674 raw=0x022A2000 rsize=0x1C670>
+  <XbeSection 'COMTNK' va=0x02CEEFA0 vsize=0x11DC raw=0x00A4B000 rsize=0x11DC>
+  <XbeSection 'MDLTNK' va=0x02CF0180 vsize=0x2F8808 raw=0x01E56000 rsize=0x2F8800>
+  <XbeSection 'MOTP0' va=0x02FE89A0 vsize=0x4FA78 raw=0x022D4000 rsize=0x4FA78>
+  <XbeSection '$$XTIMAGE' va=0x03038420 vsize=0x2800 raw=0x024BF000 rsize=0x2800>
+abi_analysis: analyzed 21829 functions, skipped 0 (no readable bytes)
+Wrote 21829 ABI entries to E:\Blinx2project\xboxrecomp\tools\abi_analysis\output\abi_functions.json (1197 detected as thiscall)

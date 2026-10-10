@@ -1,0 +1,69 @@
+﻿Microsoft (R) Build Engine version 16.11.2+f32259642 for .NET Framework
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+  Checking File Globs
+  -- GLOB mismatch!
+  The following files were added:
+    +E:/Blinx2project/blinx2-recomp/src/recomp/gen/recomp_0034.c
+  1>Checking Build System
+  CMake is re-running because E:/Blinx2project/blinx2-recomp/build/CMakeFiles/generate.stamp is out-of-date.
+    the file 'E:/Blinx2project/blinx2-recomp/build/CMakeFiles/cmake.verify_globs'
+    is newer than 'E:/Blinx2project/blinx2-recomp/build/CMakeFiles/generate.stamp.depend'
+    result='-1'
+  -- Selecting Windows SDK version 10.0.22621.0 to target Windows 10.0.26200.
+  -- Configuring done (0.0s)
+  -- Generating done (0.3s)
+  -- Build files have been written to: E:/Blinx2project/blinx2-recomp/build
+  xbox_apu.vcxproj -> E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\apu\Release\xbox_apu.lib
+  xbox_d3d8.vcxproj -> E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\d3d\Release\xbox_d3d8.lib
+  xbox_dsound.vcxproj -> E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\audio\Release\xbox_dsound.lib
+  xbox_input.vcxproj -> E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\input\Release\xbox_input.lib
+  xbox_kernel.vcxproj -> E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\kernel\Release\xbox_kernel.lib
+  xbox_nv2a.vcxproj -> E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\nv2a\Release\xbox_nv2a.lib
+  xbox_usb.vcxproj -> E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\usb\Release\xbox_usb.lib
+  xbox_video.vcxproj -> E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\video\Release\xbox_video.lib
+  recomp_0000.c
+  recomp_0001.c
+  recomp_0002.c
+  recomp_0003.c
+  recomp_0004.c
+  recomp_0005.c
+  recomp_0006.c
+  recomp_0007.c
+  recomp_0008.c
+  recomp_0009.c
+  recomp_0010.c
+  recomp_0011.c
+  recomp_0012.c
+  recomp_0013.c
+  recomp_0014.c
+  recomp_0015.c
+  recomp_0016.c
+  recomp_0017.c
+  recomp_0018.c
+  recomp_0019.c
+  Generating Code...
+  Compiling...
+  recomp_0020.c
+  recomp_0021.c
+  recomp_0022.c
+  recomp_0023.c
+  recomp_0024.c
+  recomp_0025.c
+  recomp_0026.c
+  recomp_0027.c
+  recomp_0028.c
+  recomp_0029.c
+  recomp_0030.c
+  recomp_0031.c
+  recomp_0032.c
+  recomp_0033.c
+  recomp_0034.c
+  recomp_dispatch.c
+  recomp_stubs_unresolved.c
+  Generating Code...
+  blinx_2_recomp.vcxproj -> E:\Blinx2project\blinx2-recomp\build\Release\blinx_2_recomp.exe
+  d3d8_a8.vcxproj -> E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\d3d\d3d8_smoke\Release\d3d8_a8.exe
+  d3d8_gamma.vcxproj -> E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\d3d\d3d8_smoke\Release\d3d8_gamma.exe
+  d3d8_smoke.vcxproj -> E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\d3d\d3d8_smoke\Release\d3d8_smoke.exe
+  d3d8_states_smoke.vcxproj -> E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\d3d\d3d8_smoke\Release\d3d8_states_smoke.exe

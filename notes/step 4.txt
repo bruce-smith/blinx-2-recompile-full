@@ -1,0 +1,125 @@
+py -3 -m tools.func_id E:\Blinx2project\game_files\default.xbe -v
+
+I ran func_id and got this output
+
+Phase 0: Loading inputs...
+  XBE: 38,543,360 bytes
+  Functions: 21,829
+  Strings: 2,681
+  Xrefs: 239,600
+
+Phase 1: Scanning immediate operands + merging xrefs...
+  Scanning 2,943,832 bytes of .text section...
+  .rdata range: 0x0036E980 - 0x003E14AC
+  Found 9,110 immediate references to .rdata/.data
+  Unique .rdata/.data addresses referenced: 3,818
+  Mapped to 3,065 unique functions
+  Merged 7,238 data_read xrefs
+  Total unique data addresses after merge: 11,056
+  Done in 0.4s
+
+Phase 2: RenderWare identification...
+  Found 0 RenderWare ID strings
+  Built 0 tight .rdata zones (max 0x400)
+  Seed functions: 0
+  RW data region: 0x00000000 - 0x00000000 (0KB)
+  RW data region identifications: 0 functions
+  Total RW-identified functions: 0
+  Done in 0.0s
+
+Phase 3: CRT identification...
+  Matching 25 CRT signatures against 21829 functions...
+  Identified 10 CRT functions
+    0x0002E860: _ftol
+    0x0029E38F: fmod
+    0x002A20E0: strcpy
+    0x002B7490: strcmp
+    0x002D5800: memmove
+    0x002D5BC0: _allmul
+    0x002D5E80: _aullshr
+    0x002D62F0: _allshr
+    0x002D6320: _alldiv
+    0x002D6418: _ftol2
+  Done in 0.1s
+
+Phase 3b: Stub classification...
+  Float copy stubs:    0
+  Float chain stubs:   0
+  Double op stubs:     0
+  Total data_init:     0
+  Done in 0.0s
+
+Phase 4: Label propagation...
+  Iteration 1: 0 new labels
+  RW region propagation: 0 new labels
+  Proximity propagation: 0 new labels (1 passes)
+  RW API consumers: 0 functions
+  XDK section callers: 1457 functions
+  Game sub-classification: 62 functions categorized
+  Done in 0.1s
+
+Phase 5: Vtable scanning...
+  XBE sections: 73 (72 code, 1 data)
+  Raw vtable candidates: 16107
+  Validated vtables: 16034
+  Total virtual methods: 84608
+  Discovered vtable thunks (new functions): 13001
+    0x00012AF1
+    0x00012B09
+    0x00012B21
+    0x00013630
+    0x000139CD
+    0x00013A50
+    0x00013BF1
+    0x00013CB8
+    0x00013D30
+    0x00013DD8
+    ... and 12991 more
+  Constructors found: 1430
+  Functions classified by vtable: 17930
+  New classifications from vtable: 17595
+  Done in 54.1s
+  Added 13001 vtable thunks to function list
+
+Phase 6: Writing output...
+
+============================================================
+FUNCTION IDENTIFICATION SUMMARY
+============================================================
+  Total functions:    34,830
+  RenderWare:         0  (0.0%)
+  CRT/MSVC:           10  (0.0%)
+  Data init stubs:    0  (0.0%)
+  Game (classified):  19,114  (54.9%)
+    (vtable methods): 4,594
+  Unknown:            15,706  (45.1%)
+
+  RW source modules:  0
+
+  By category:
+    game_vtable                    17,595
+    unknown                        15,706
+    game_render                     1,377
+    game_audio                         78
+    game_debug                         30
+    game_input                         17
+    crt                                10
+    game_io                            10
+    game_ui                             4
+    game_vehicle                        2
+    game_physics                        1
+
+  By method:
+    none                           15,706
+    vtable_thunk                   13,001
+    vtable_scan                     3,236
+    xdk_caller                      1,457
+    vtable_ctor                     1,358
+    string_keyword                     62
+    crt_signature                      10
+============================================================
+
+Total time: 55.2s
+Output written to: tools/func_id/output/
+
+E:\Blinx2project\xboxrecomp>

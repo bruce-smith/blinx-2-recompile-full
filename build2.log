@@ -1,0 +1,36 @@
+﻿Microsoft (R) Build Engine version 16.11.2+f32259642 for .NET Framework
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+  Checking File Globs
+  xbox_apu.vcxproj -> E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\apu\Release\xbox_apu.lib
+  xbox_d3d8.vcxproj -> E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\d3d\Release\xbox_d3d8.lib
+  xbox_dsound.vcxproj -> E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\audio\Release\xbox_dsound.lib
+  xbox_input.vcxproj -> E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\input\Release\xbox_input.lib
+  kernel_bridge.c
+E:\Blinx2project\xboxrecomp\src\kernel\kernel.h(176,6): warning C4201: nonstandard extension used: nameless struct/union [E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\kernel\xbox_kernel.vcxproj]
+E:\Blinx2project\xboxrecomp\src\kernel\kernel_bridge.c(820,50): warning C4210: nonstandard extension used: function given file scope [E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\kernel\xbox_kernel.vcxproj]
+E:\Blinx2project\xboxrecomp\src\kernel\kernel_bridge.c(836,14): warning C4189: 'zero_bits': local variable is initialized but not referenced [E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\kernel\xbox_kernel.vcxproj]
+E:\Blinx2project\xboxrecomp\src\kernel\kernel_bridge.c(1365,45): warning C4210: nonstandard extension used: function given file scope [E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\kernel\xbox_kernel.vcxproj]
+E:\Blinx2project\xboxrecomp\src\kernel\kernel_bridge.c(1498,34): warning C4244: 'function': conversion from 'uint32_t' to 'BOOLEAN', possible loss of data [E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\kernel\xbox_kernel.vcxproj]
+E:\Blinx2project\xboxrecomp\src\kernel\kernel_bridge.c(1572,43): warning C4244: 'function': conversion from 'uint32_t' to 'KPROCESSOR_MODE', possible loss of data [E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\kernel\xbox_kernel.vcxproj]
+E:\Blinx2project\xboxrecomp\src\kernel\kernel_bridge.c(1587,34): warning C4244: 'function': conversion from 'uint32_t' to 'KPROCESSOR_MODE', possible loss of data [E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\kernel\xbox_kernel.vcxproj]
+E:\Blinx2project\xboxrecomp\src\kernel\kernel_bridge.c(1902,66): warning C4210: nonstandard extension used: function given file scope [E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\kernel\xbox_kernel.vcxproj]
+E:\Blinx2project\xboxrecomp\src\kernel\kernel_bridge.c(1903,54): warning C4210: nonstandard extension used: function given file scope [E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\kernel\xbox_kernel.vcxproj]
+E:\Blinx2project\xboxrecomp\src\kernel\kernel_bridge.c(3099,61): warning C4210: nonstandard extension used: function given file scope [E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\kernel\xbox_kernel.vcxproj]
+E:\Blinx2project\xboxrecomp\src\kernel\kernel_bridge.c(3122,49): warning C4210: nonstandard extension used: function given file scope [E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\kernel\xbox_kernel.vcxproj]
+E:\Blinx2project\xboxrecomp\src\kernel\kernel_bridge.c(3590,61): warning C4245: '=': conversion from 'NTSTATUS' to 'uint32_t', signed/unsigned mismatch [E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\kernel\xbox_kernel.vcxproj]
+E:\Blinx2project\xboxrecomp\src\kernel\kernel_bridge.c(3614,61): warning C4245: '=': conversion from 'NTSTATUS' to 'uint32_t', signed/unsigned mismatch [E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\kernel\xbox_kernel.vcxproj]
+E:\Blinx2project\xboxrecomp\src\kernel\kernel_bridge.c(3951,14): warning C4189: 'handle': local variable is initialized but not referenced [E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\kernel\xbox_kernel.vcxproj]
+E:\Blinx2project\xboxrecomp\src\kernel\kernel_bridge.c(3952,14): warning C4189: 'obj_type': local variable is initialized but not referenced [E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\kernel\xbox_kernel.vcxproj]
+E:\Blinx2project\xboxrecomp\src\kernel\kernel_bridge.c(4005,14): warning C4189: 'protect': local variable is initialized but not referenced [E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\kernel\xbox_kernel.vcxproj]
+E:\Blinx2project\xboxrecomp\src\kernel\kernel_bridge.c(4198,60): warning C4210: nonstandard extension used: function given file scope [E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\kernel\xbox_kernel.vcxproj]
+E:\Blinx2project\xboxrecomp\src\kernel\kernel_bridge.c(9691,19): warning C4018: '<': signed/unsigned mismatch [E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\kernel\xbox_kernel.vcxproj]
+  xbox_kernel.vcxproj -> E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\kernel\Release\xbox_kernel.lib
+  xbox_nv2a.vcxproj -> E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\nv2a\Release\xbox_nv2a.lib
+  xbox_usb.vcxproj -> E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\usb\Release\xbox_usb.lib
+  xbox_video.vcxproj -> E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\video\Release\xbox_video.lib
+  blinx_2_recomp.vcxproj -> E:\Blinx2project\blinx2-recomp\build\Release\blinx_2_recomp.exe
+  d3d8_a8.vcxproj -> E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\d3d\d3d8_smoke\Release\d3d8_a8.exe
+  d3d8_gamma.vcxproj -> E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\d3d\d3d8_smoke\Release\d3d8_gamma.exe
+  d3d8_smoke.vcxproj -> E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\d3d\d3d8_smoke\Release\d3d8_smoke.exe
+  d3d8_states_smoke.vcxproj -> E:\Blinx2project\blinx2-recomp\build\xboxrecomp\src\d3d\d3d8_smoke\Release\d3d8_states_smoke.exe

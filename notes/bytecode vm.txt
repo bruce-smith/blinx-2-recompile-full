@@ -1,0 +1,5 @@
+Bytecode VM: Blinx 2 runs on a custom scripting engine (SRCADV/SRCED/SRCAC). Game logic is likely scripted, not compiled C++. This is actually good for AI decompilation — scripting VMs are simpler to analyze and the scripts themselves (stored in the .ipk archives) may be extractable.
+
+GitHub - Nezogoku/ipk-extractor: A simple program that unpacks and repacks ipk files found in Blinx 2 · GitHub
+https://github.com/Nezogoku/ipk-extractor
+

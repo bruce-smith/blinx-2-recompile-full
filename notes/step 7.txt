@@ -1,0 +1,140 @@
+py -3 -m tools.recomp E:\Blinx2project\game_files\default.xbe --all --split 250 --gen-dir E:\Blinx2project\blinx2-recomp\src\recomp\gen
+
+here is the output
+
+Loading data files...
+  SEH helpers: __SEH_prolog 0x002D5BF4, 0x002D6E38, __SEH_epilog 0x002D5C2F
+  CRT non-local jumps: setjmp 0x002D662C, longjmp 0x002D65B0
+Extended 0x00110B50 from 0x00110B69 to 0x00110D6B over its inline jump tables
+Extended 0x001CE540 from 0x001CE5E3 to 0x001CE6C6 over its inline jump tables
+Extended 0x001D1C90 from 0x001D1CB3 to 0x001D1F00 over its inline jump tables
+Extended 0x001D2120 from 0x001D2141 to 0x001D2359 over its inline jump tables
+Extended 0x003192BE from 0x003192D5 to 0x003192E8 over its inline jump tables
+Extended 0x0034B5B0 from 0x0034B5C0 to 0x0034B5F9 over its inline jump tables
+Extended 0x003532F0 from 0x00353344 to 0x00353544 over its inline jump tables
+Extended 0x00355270 from 0x003552A7 to 0x003552C0 over its inline jump tables
+Extended 0x003552E0 from 0x00355317 to 0x00355330 over its inline jump tables
+Extended 0x0035FB00 from 0x0035FB26 to 0x0035FC94 over its inline jump tables
+Loaded 21846 functions, 21950 labels, 34830 classifications, 21829 ABI entries in 400.9s
+
+Translating 21845 functions...
+  wrote recomp_types.h (runtime register model)
+
+=== Split Translation Complete (504.8s) ===
+21845/21845 functions (0 failed), 18385869 lines of C, 88 source files
+1189 unresolved call targets stubbed (addresses called but not detected as functions)
+1948 instruction(s) unimplemented, emitted as no-op comments (35 distinct mnemonics):
+       603  cli          e.g. 0x0006048D
+       331  bound        e.g. 0x000387C0
+       324  outsd        e.g. 0x000893C9
+       281  sti          e.g. 0x0001CE8C
+       236  aad          e.g. 0x00048FBC
+        21  in           e.g. 0x0001D6A4
+        14  out          e.g. 0x000C480C
+        13  arpl         e.g. 0x000893C0
+        11  popfd        e.g. 0x00032728
+        10  salc         e.g. 0x0001D699
+         9  das          e.g. 0x00033225
+         8  int1         e.g. 0x00044FE4
+         8  into         e.g. 0x00048FB8
+         7  lcall        e.g. 0x000A8714
+         6  enter        e.g. 0x0002BF24
+         6  hlt          e.g. 0x000AD03C
+         6  outsb        e.g. 0x00032710
+         6  pushfd       e.g. 0x000387C8
+         5  aam          e.g. 0x0009B028
+         5  insb         e.g. 0x00110B65
+    ... and 15 more
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_funcs.h
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0000.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0001.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0002.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0003.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0004.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0005.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0006.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0007.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0008.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0009.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0010.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0011.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0012.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0013.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0014.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0015.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0016.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0017.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0018.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0019.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0020.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0021.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0022.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0023.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0024.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0025.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0026.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0027.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0028.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0029.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0030.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0031.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0032.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0033.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0034.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0035.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0036.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0037.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0038.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0039.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0040.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0041.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0042.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0043.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0044.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0045.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0046.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0047.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0048.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0049.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0050.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0051.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0052.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0053.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0054.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0055.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0056.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0057.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0058.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0059.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0060.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0061.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0062.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0063.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0064.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0065.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0066.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0067.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0068.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0069.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0070.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0071.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0072.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0073.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0074.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0075.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0076.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0077.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0078.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0079.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0080.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0081.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0082.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0083.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0084.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0085.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0086.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_0087.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_stubs_unresolved.c
+  E:\Blinx2project\blinx2-recomp\src\recomp\gen\recomp_dispatch.c
+
+Summary: E:\Blinx2project\xboxrecomp\tools\recomp\output\summary.json

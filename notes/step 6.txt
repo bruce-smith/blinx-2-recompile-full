@@ -1,0 +1,133 @@
+https://discord.com/channels/@me/1541222611286097990/1557587062880735273
+
+running Ghidra took a few minutes.
+
+it keep popping out messages like this
+
+WARN  Decompiling 00231000, pcode error at 03142444: Could not follow disassembly flow into non-existing memory at 03142444 (DecompileCallback)
+WARN  Decompiling 00231000: Unable to read bytes at ram:eb000000 (DecompileCallback)
+
+then it printed this
+
+INFO  -----------------------------------------------------
+    ASCII Strings                              1.641 secs
+    Apply Data Archives                        0.273 secs
+    Call Convention ID                         2.381 secs
+    Call-Fixup Installer                       0.114 secs
+    Create Address Tables                      0.319 secs
+    Create Address Tables - One Time         108.503 secs
+    Create Function                            1.346 secs
+    Data Reference                            83.920 secs
+    Decompiler Switch Analysis               586.978 secs
+    Disassemble                                5.363 secs
+    Disassemble Entry Points                   0.001 secs
+    Embedded Media                             0.263 secs
+    External Entry References                  0.000 secs
+    Function ID                                5.218 secs
+    Function Start Pre Search                  0.195 secs
+    Function Start Search                      3.151 secs
+    Function Start Search After Code           0.811 secs
+    Function Start Search After Data           0.359 secs
+    Function Start Search delayed - One Time   0.001 secs
+    Non-Returning Functions - Discovered       3.229 secs
+    Reference                                 89.877 secs
+    Shared Return Calls                        0.974 secs
+    Stack                                     12.922 secs
+    Subroutine References                      2.043 secs
+    Subroutine References - One Time           0.001 secs
+    X86 Function Callee Purge                  1.291 secs
+    x86 Constant Reference Analyzer           26.782 secs
+-----------------------------------------------------
+     Total Time   937 secs
+-----------------------------------------------------
+ (AutoAnalysisManager)
+INFO  REPORT: Analysis succeeded for file: file:///E:/Blinx2project/xboxrecomp/tools/ghidra_naming/work/xbe_flat.bin (HeadlessAnalyzer)
+INFO  REPORT: Execute script: ExportXbeNames.py 'xboxrecomp\tools\ghidra_naming\export"'  (HeadlessAnalyzer)
+ERROR  (HeadlessAnalyzer)
+ERROR Abort due to Headless analyzer error: ghidra.app.script.JythonStubScriptProvider$JythonStubException: Jython script failed. In order to use Jython based scripts, you must install the Jython Ghidra Extension, or (recommended) port your script to PyGhidra or Java. (HeadlessAnalyzer) java.lang.Error: ghidra.app.script.JythonStubScriptProvider$JythonStubException: Jython script failed. In order to use Jython based scripts, you must install the Jython Ghidra Extension, or (recommended) port your script to PyGhidra or Java.
+        at ghidra.app.util.headless.HeadlessAnalyzer.runScriptsList(HeadlessAnalyzer.java:966)
+        at ghidra.app.util.headless.HeadlessAnalyzer.analyzeProgram(HeadlessAnalyzer.java:1093)
+        at ghidra.app.util.headless.HeadlessAnalyzer.processFileWithImport(HeadlessAnalyzer.java:1591)
+        at ghidra.app.util.headless.HeadlessAnalyzer.processWithLoader(HeadlessAnalyzer.java:1751)
+        at ghidra.app.util.headless.HeadlessAnalyzer.processWithImport(HeadlessAnalyzer.java:1692)
+        at ghidra.app.util.headless.HeadlessAnalyzer.processWithImport(HeadlessAnalyzer.java:1776)
+        at ghidra.app.util.headless.HeadlessAnalyzer.processLocal(HeadlessAnalyzer.java:452)
+        at ghidra.app.util.headless.AnalyzeHeadless.launch(AnalyzeHeadless.java:199)
+        at ghidra.GhidraLauncher.launch(GhidraLauncher.java:81)
+        at ghidra.Ghidra.main(Ghidra.java:54)
+Caused by: ghidra.app.script.JythonStubScriptProvider$JythonStubException: Jython script failed. In order to use Jython based scripts, you must install the Jython Ghidra Extension, or (recommended) port your script to PyGhidra or Java.
+        at ghidra.app.script.JythonStubScriptProvider.getScriptInstance(JythonStubScriptProvider.java:46)
+        at ghidra.app.util.headless.HeadlessAnalyzer.runScriptsList(HeadlessAnalyzer.java:917)
+        ... 9 more
+
+
+notice there's an error at the end. 
+
+
+second run after installing Jython  
+
+I ran the command a second time after installing Jython. I got a different error this time.
+
+
+INFO  -----------------------------------------------------
+    ASCII Strings                              2.253 secs
+    Apply Data Archives                        0.218 secs
+    Call Convention ID                         2.437 secs
+    Call-Fixup Installer                       0.114 secs
+    Create Address Tables                      0.318 secs
+    Create Address Tables - One Time         117.416 secs
+    Create Function                            1.496 secs
+    Data Reference                            90.914 secs
+    Decompiler Switch Analysis               586.659 secs
+    Disassemble                                5.569 secs
+    Disassemble Entry Points                   0.000 secs
+    Embedded Media                             0.161 secs
+    External Entry References                  0.001 secs
+    Function ID                                3.205 secs
+    Function Start Pre Search                  0.212 secs
+    Function Start Search                      3.267 secs
+    Function Start Search After Code           0.929 secs
+    Function Start Search After Data           0.356 secs
+    Function Start Search delayed - One Time   0.000 secs
+    Non-Returning Functions - Discovered       3.284 secs
+    Reference                                 96.877 secs
+    Shared Return Calls                        0.967 secs
+    Stack                                     15.213 secs
+    Subroutine References                      2.163 secs
+    Subroutine References - One Time           0.001 secs
+    X86 Function Callee Purge                  1.481 secs
+    x86 Constant Reference Analyzer           27.420 secs
+-----------------------------------------------------
+     Total Time   962 secs
+-----------------------------------------------------
+ (AutoAnalysisManager)
+INFO  REPORT: Analysis succeeded for file: file:///E:/Blinx2project/xboxrecomp/tools/ghidra_naming/work/xbe_flat.bin (HeadlessAnalyzer)
+INFO  REPORT: Execute script: ExportXbeNames.py 'xboxrecomp\tools\ghidra_naming\export"'  (HeadlessAnalyzer)
+INFO  SCRIPT: E:\Blinx2project\xboxrecomp\tools\ghidra_naming\ghidra_scripts\ExportXbeNames.py (HeadlessAnalyzer)
+Traceback (most recent call last):
+  File "E:\Blinx2project\xboxrecomp\tools\ghidra_naming\ghidra_scripts\ExportXbeNames.py", line 314, in <module>
+    run()
+  File "E:\Blinx2project\xboxrecomp\tools\ghidra_naming\ghidra_scripts\ExportXbeNames.py", line 294, in run
+    os.makedirs(out_dir)
+  File "C:\Users\cat126\AppData\Roaming\ghidra\ghidra_12.1.4_PUBLIC\Extensions\Jython\lib\jython-standalone-2.7.4.jar\Lib\os$py.class", line 174, in makedirs
+OSError: [Errno 22] Invalid argument: u'xboxrecomp\\tools\\ghidra_naming\\export"'
+INFO  ANALYZING changes made by post scripts: file:///E:/Blinx2project/xboxrecomp/tools/ghidra_naming/work/xbe_flat.bin (HeadlessAnalyzer)
+INFO  REPORT: Post-analysis succeeded for file: file:///E:/Blinx2project/xboxrecomp/tools/ghidra_naming/work/xbe_flat.bin (HeadlessAnalyzer)
+INFO  /xbe_flat.bin: file created (cat126) (LocalFileSystem)
+INFO  REPORT: Save succeeded for: /xbe_flat.bin (blinx2:/xbe_flat.bin) (HeadlessAnalyzer)
+INFO  REPORT: Import succeeded (HeadlessAnalyzer)
+
+
+
+============================================================
+ghidra_names.json written: E:\Blinx2project\xboxrecomp\tools\ghidra_naming\ghidra_names.json
+Total meaningful names: 0
+By source:
+  fidb/library   0
+  demangled      0
+  rtti           0
+  symbol         0
+Addresses matching recompiler functions.json `start`: 0 / 0
+============================================================
+Wrote backup: E:\Blinx2project\xboxrecomp\tools\disasm\output\functions.json.bak
+Applied 0 names to E:\Blinx2project\xboxrecomp\tools\disasm\output\functions.json

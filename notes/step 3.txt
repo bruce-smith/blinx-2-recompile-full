@@ -1,0 +1,127 @@
+py -3 -m tools.disasm E:\Blinx2project\game_files\default.xbe --text-only -v
+
+I ran the disassembler and got this output
+
+Phase 1: Loading binary image...
+  Loaded: E:\Blinx2project\game_files\default.xbe
+  Base: 0x00010000  Entry: 0x0029A1DA
+  Sections: 73  Kernel imports: 121
+  Target sections: .text
+
+Phase 2: Populating labels...
+  Kernel import labels: 121
+  String labels: 2681
+  Total labels: 2803
+
+Phase 3: Linear sweep disassembly...
+  .text: 863,604 instructionsB)... 100%
+  Total: 863,604 instructions
+  Resynced past 867 embedded jump table(s)
+
+Phase 4: Building cross-references...
+  Total xrefs: 239,600
+    call: 42,342
+    cond_jump: 75,771
+    data_imm: 19,153
+    data_read: 84,179
+    jump: 17,917
+    kernel_call: 238
+
+Phase 5: Detecting functions...
+  Realigned 204 call targets the sweep stepped over (0 rejected: bytes do not decode as a function)
+  5 function address(es) installed into indirect-call slots
+  conditional-branch orphans recovered as alias entries
+  tail-jump pass 0: +40 standalone, 168 aliases
+  55 function address(es) taken as an immediate
+  functions recovered that follow a ret with no padding
+  14549 function address(es) found in data tables
+  Total functions: 21,829
+    call_target: 4,649
+    cc_boundary: 1,410
+    entry_point: 1
+    gap_prologue: 179
+    imm_ref_target: 55
+    indirect_call_slot: 4
+    prologue: 910
+    tail_jump_alias: 14,581
+    tail_jump_target: 40
+
+Phase 6: Recursive descent validation...
+  Reachable instructions: 671,759 (77.8%)
+
+============================================================
+  Disassembly Analysis Summary
+============================================================
+  Binary: E:\Blinx2project\game_files\default.xbe
+  Base: 0x00010000  Entry: 0x0029A1DA
+
+  Instructions:        858,566
+  Functions:            21,829
+    with prologue:         999
+  Cross-references:    239,600
+  Labels:               24,631
+  Strings:               2,681
+  Kernel imports:          121
+
+  Detection methods:
+    call_target             4,649
+    cc_boundary             1,410
+    entry_point                 1
+    gap_prologue              179
+    imm_ref_target             55
+    indirect_call_slot          4
+    prologue                  910
+    tail_jump_alias        14,581
+    tail_jump_target           40
+
+  Functions by section:
+    .text                  21,633
+    D3D                        94
+    D3DX                        3
+    DSOUND                     21
+    PSFD_B                      2
+    SRCAC                       5
+    SRCADV                     51
+    SRCED                       3
+    XGRPH                       7
+    XPP                        10
+
+  Cross-references by type:
+    call                   42,342
+    cond_jump              75,771
+    data_imm               19,153
+    data_read              84,179
+    jump                   17,917
+    kernel_call               238
+
+  Top kernel imports (by call count):
+    NtClose                                      24 calls
+    RtlInitAnsiString                            16 calls
+    RtlLeaveCriticalSection                      13 calls
+    NtSetInformationFile                         13 calls
+    NtOpenFile                                   12 calls
+    RtlEnterCriticalSection                      11 calls
+    NtWriteFile                                  10 calls
+    RtlNtStatusToDosError                         9 calls
+    NtCreateFile                                  9 calls
+    NtQueryInformationFile                        9 calls
+    RtlCompareMemoryUlong                         7 calls
+    NtAllocateVirtualMemory                       6 calls
+    NtFreeVirtualMemory                           6 calls
+    NtReadFile                                    5 calls
+    ObReferenceObjectByHandle                     4 calls
+    ... (57 more)
+
+============================================================
+
+  Elapsed: 45.81s
+
+Phase 7: Writing output to tools/disasm/output/...
+  Writing JSON databases to tools\disasm\output/
+  Writing ASM listings to tools\disasm\output\asm/
+    text.asm...
+
+  Output written to tools/disasm/output/
+Done in 45.81s
+
+E:\Blinx2project\xboxrecomp>

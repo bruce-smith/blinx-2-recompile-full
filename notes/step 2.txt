@@ -1,0 +1,278 @@
+py -3 -m tools.xbe_parser E:\Blinx2project\game_files\default.xbe --json E:\Blinx2project\game_files\mygame_analysis.json
+
+I set up the blinx 2 project in E:\Blinx2project\  I cloned xboxrecomp it is at E:\Blinx2project\xboxrecomp the files extracted from the game disc are in E:\Blinx2project\game_files
+
+I ran the tool to analyze the xbe file and got this back.
+
+======================================================================
+  XBE Analysis Report
+======================================================================
+
+  File: BLiNX2
+  Title ID: 0x4D530065
+  Type: Retail
+  Build Date: 2004-10-20 07:52:11 UTC
+  Certificate Date: 2004-10-25 19:55:59 UTC
+  Region: North America, Japan, Rest of World
+  Media: DVD_X2
+  Disc: 0, Version: 1
+  Debug Path: c:\B\Final - LTCG\blinx2LTCG.exe
+
+--- Memory Layout ---
+  Base Address: 0x00010000
+  Image Size: 0x0302AC20 (48.17 MB)
+  Entry Point: 0x0029A1DA (raw: 0xA8D5F671)
+  Kernel Thunks: 0x0036E980 (raw: 0x5B5BA936)
+  Stack Commit: 0x10000
+  Heap: reserve=0x100000 commit=0x1000
+
+--- TLS ---
+  Data: 0x00000000 - 0x00000000
+  Index Addr: 0x004B7378
+  Zero Fill: 144 bytes
+
+--- Sections (73) ---
+   #  Name           VirtAddr   VirtSize    RawAddr    RawSize  Flags
+  --  ------------ ---------- ---------- ---------- ----------  --------------------
+   0  .text        0x00012000 0x002CEB58 0x00002000 0x002CEB58  PRE, X, HRO
+   1  D3D          0x002E0B60 0x00013C44 0x002D1000 0x00010378  W, PRE, X
+   2  D3DX         0x002F47C0 0x0001C528 0x002E2000 0x0001C520  W, PRE, X
+   3  XGRPH        0x00310D00 0x00021298 0x002FF000 0x0002061C  W, PRE, X
+   4  DSOUND       0x00331FA0 0x0000838C 0x00320000 0x00008124  W, PRE, X
+   5  PSFD_I       0x0033A340 0x00000404 0x00329000 0x00000404  PRE, X
+   6  PSFD_B       0x0033A760 0x000008D0 0x0032A000 0x000008D0  PRE, X, TRO
+   7  PSFD_P       0x0033B040 0x0000064C 0x0032B000 0x0000064C  PRE, X, HRO, TRO
+   8  PSFD00       0x0033B6A0 0x00001768 0x0032C000 0x00001768  PRE, X, HRO, TRO
+   9  SRCADV       0x0033CE20 0x0002309C 0x0032E000 0x0002309C  PRE, X, HRO, TRO
+  10  SRCED        0x0035FEC0 0x00001CA8 0x02329000 0x00001CA8  X, HRO, TRO
+  11  SRCAC        0x00361B80 0x00004F58 0x02324000 0x00004F58  X, HRO
+  12  XPP          0x00366AE0 0x00007E84 0x00352000 0x00007E84  W, PRE, X
+  13  .rdata       0x0036E980 0x00072B2C 0x0035A000 0x00072B1C  PRE, X
+  14  .data        0x003E14C0 0x00C5C67C 0x003CD000 0x000D2CE4  W, PRE, X
+  15  DOLBY        0x0103DB40 0x00007180 0x004A0000 0x0000716C  PRE, X
+  16  DATED        0x01044CC0 0x000E8618 0x0232B000 0x000E8618  W, X
+  17  DATADV       0x0112D2E0 0x0000330C 0x004A8000 0x00003300  W, PRE, X
+  18  MDLGIM       0x01130600 0x0005B8C4 0x004AC000 0x0005B8C4  W, PRE, X
+  19  MDLAO        0x0118BEE0 0x0010EAF0 0x00508000 0x0010EAF0  W, PRE, X
+  20  MDLGA        0x0129A9E0 0x001454A0 0x00617000 0x00145498  W, PRE, X
+  21  G2           0x013DFE80 0x000247B0 0x0242E000 0x000247A8  W, X
+  22  M93          0x01404640 0x000F603C 0x01C49000 0x000F6038  W, X
+  23  M91          0x014FA680 0x000768C4 0x01BD2000 0x000768C4  W, X
+  24  G5           0x01570F60 0x00025120 0x02499000 0x00025120  W, X
+  25  M41          0x01596080 0x0011E9DC 0x01588000 0x0011E9DC  W, X
+  26  M44          0x016B4A60 0x0011A270 0x01764000 0x0011A270  W, X
+  27  G3           0x017CECE0 0x00000420 0x0075D000 0x00000420  W, PRE, X
+  28  M13          0x017CF100 0x0013E6C0 0x00BA4000 0x0013E6B8  W, X
+  29  G1           0x0190D7C0 0x0000A458 0x02423000 0x0000A450  W, X
+  30  M11          0x01917C20 0x0015677C 0x00A4D000 0x0015677C  W, X
+  31  DSKERDAT     0x01A6E3A0 0x0000C300 0x0075E000 0x0000C300  PRE, X
+  32  MDLBS5       0x01A7A6A0 0x00042E64 0x01E13000 0x00042E64  W, X
+  33  MDLPL        0x01ABD520 0x000DF2E8 0x0076B000 0x000DF2E8  W, PRE, X
+  34  MDLEN        0x01B9C820 0x00022EDC 0x0084B000 0x00022EDC  W, PRE, X
+  35  M24          0x01BBF700 0x0011CC84 0x010BB000 0x0011CC80  W, X
+  36  M61          0x01CDC3A0 0x0002440C 0x01AFE000 0x00024408  W, X
+  37  M31          0x01D007C0 0x00184034 0x011D8000 0x00184034  W, X
+  38  M53          0x01E84800 0x000DD698 0x019DC000 0x000DD694  W, X
+  39  G4           0x01F61EA0 0x000451EC 0x02453000 0x000451EC  W, X
+  40  M33          0x01FA70A0 0x0010A1E0 0x0135D000 0x0010A1E0  W, X
+  41  M23          0x020B1280 0x000F0A74 0x00FCA000 0x000F0A70  W, X
+  42  M21          0x021A1D00 0x001CAF74 0x00DFF000 0x001CAF70  W, X
+  43  M14          0x0236CC80 0x0011BE04 0x00CE3000 0x0011BE04  W, X
+  44  MOTPL        0x02488AA0 0x001DCBAC 0x0086E000 0x001DCBAC  W, PRE, X
+  45  M34          0x02665660 0x0011FD24 0x01468000 0x0011FD20  W, X
+  46  M121         0x027853A0 0x0008419C 0x01D8E000 0x00084198  W, X
+  47  GIMCOM       0x02809540 0x000063A8 0x022CD000 0x000063A8  W, X
+  48  M51          0x0280F900 0x0015C164 0x0187F000 0x0015C160  W, X
+  49  M43          0x0296BA80 0x000BC028 0x016A7000 0x000BC028  W, X
+  50  M111         0x02A27AC0 0x0004D594 0x01D40000 0x0004D590  W, X
+  51  MDLMG        0x02A75060 0x0000DDD0 0x022BF000 0x0000DDC8  W, X
+  52  M64          0x02A82E40 0x000AECF0 0x01B23000 0x000AECEC  W, X
+  53  M54          0x02B31B40 0x00043F80 0x01ABA000 0x00043F7C  W, X
+  54  MDLBK        0x02B75AC0 0x00020B44 0x02281000 0x00020B44  W, X
+  55  MDLRT        0x02B96620 0x00009B54 0x02277000 0x00009B54  W, X
+  56  MDLBN        0x02BA0180 0x00012E20 0x02264000 0x00012E20  W, X
+  57  MDLBT        0x02BB2FA0 0x00009818 0x0225A000 0x00009818  W, X
+  58  MDLST        0x02BBC7C0 0x00018004 0x02241000 0x00018004  W, X
+  59  MDLTC        0x02BD47E0 0x00010450 0x02230000 0x00010448  W, X
+  60  MDLSK        0x02BE4C40 0x0000BD88 0x02224000 0x0000BD80  W, X
+  61  MDLOB        0x02BF09E0 0x00029854 0x021FA000 0x00029854  W, X
+  62  MDLSR        0x02C1A240 0x0002DCE0 0x021CC000 0x0002DCE0  W, X
+  63  MDLNT        0x02C47F20 0x00020E24 0x021AB000 0x00020E24  W, X
+  64  MDLYP        0x02C68D60 0x00025580 0x02185000 0x00025580  W, X
+  65  MDLTT        0x02C8E2E0 0x00019F70 0x0216B000 0x00019F70  W, X
+  66  MDLKF        0x02CA8260 0x0001B738 0x0214F000 0x0001B738  W, X
+  67  MSHIP        0x02CC39A0 0x0000EF6C 0x02414000 0x0000EF68  W, X
+  68  MDLBEN       0x02CD2920 0x0001C674 0x022A2000 0x0001C670  W, X
+  69  COMTNK       0x02CEEFA0 0x000011DC 0x00A4B000 0x000011DC  W, PRE, X
+  70  MDLTNK       0x02CF0180 0x002F8808 0x01E56000 0x002F8800  W, X
+  71  MOTP0        0x02FE89A0 0x0004FA78 0x022D4000 0x0004FA78  W, X
+  72  $$XTIMAGE    0x03038420 0x00002800 0x024BF000 0x00002800  INS, TRO
+
+--- Libraries (8) ---
+  XAPILIB      1.0.5849  flags=0x4001
+  D3D8         1.0.5849  flags=0x4001
+  D3DX8        1.0.5849  flags=0x4001
+  XGRAPHC      1.0.5849  flags=0x4009
+  DSOUND       1.0.5849  flags=0x4001
+  XBOXKRNL     1.0.5849  flags=0x4001
+  LIBCMT       1.0.5849  flags=0x4001
+  LIBCPMT      1.0.5849  flags=0x4001
+
+--- Kernel Imports (121) ---
+
+  [Av] (4 imports)
+    #1    AvGetSavedDataAddress
+    #2    AvSendTVEncoderOption
+    #3    AvSetDisplayMode
+    #4    AvSetSavedDataAddress
+
+  [Ex] (5 imports)
+    #15   ExAllocatePoolWithTag
+    #16   ExEventObjectType
+    #17   ExFreePool
+    #23   ExQueryPoolBlockSize
+    #24   ExQueryNonVolatileSetting
+
+  [Hal] (8 imports)
+    #40   HalDiskCachePartitionCount
+    #44   HalGetInterruptVector
+    #46   HalReadWritePCISpace
+    #47   HalRegisterShutdownNotification
+    #49   HalReturnToFirmware
+    #356  HalBootSMCVideoMode
+    #358  HalIsResetOrShutdownPending
+    #360  HalInitiateShutdown
+
+  [Io] (9 imports)
+    #65   IoCreateDevice
+    #67   IoCreateSymbolicLink
+    #69   IoDeleteSymbolicLink
+    #74   IoInvalidDeviceRequest
+    #81   IoStartNextPacket
+    #83   IoStartPacket
+    #87   IofCompleteRequest
+    #91   IoDismountVolumeByName
+    #359  IoMarkIrpMustComplete
+
+  [Ke] (23 imports)
+    #95   KeBugCheck
+    #97   KeCancelTimer
+    #98   KeConnectInterrupt
+    #99   KeDelayExecutionThread
+    #100  KeDisconnectInterrupt
+    #107  KeInitializeDpc
+    #109  KeInitializeInterrupt
+    #113  KeInitializeTimerEx
+    #119  KeInsertQueueDpc
+    #124  KeQueryBasePriorityThread
+    #128  KeQuerySystemTime
+    #129  KeRaiseIrqlToDpcLevel
+    #137  KeRemoveQueueDpc
+    #139  KeRestoreFloatingPointState
+    #142  KeSaveFloatingPointState
+    #143  KeSetBasePriorityThread
+    #144  KeSetDisableBoostThread
+    #145  KeSetEvent
+    #149  KeSetTimer
+    #151  KeStallExecutionProcessor
+    #153  KeSynchronizeExecution
+    #156  KeTickCount
+    #159  KeWaitForSingleObject
+
+  [Kf] (2 imports)
+    #160  KfRaiseIrql
+    #161  KfLowerIrql
+
+  [Mm] (14 imports)
+    #165  MmAllocateContiguousMemory
+    #166  MmAllocateContiguousMemoryEx
+    #167  MmAllocateSystemMemory
+    #168  MmClaimGpuInstanceMemory
+    #171  MmFreeContiguousMemory
+    #172  MmFreeSystemMemory
+    #173  MmGetPhysicalAddress
+    #175  MmLockUnlockBufferPages
+    #176  MmLockUnlockPhysicalPage
+    #178  MmPersistContiguousMemory
+    #179  MmQueryAddressProtect
+    #180  MmQueryAllocationSize
+    #181  MmQueryStatistics
+    #182  MmSetAddressProtect
+
+  [Nt] (24 imports)
+    #184  NtAllocateVirtualMemory
+    #187  NtClose
+    #189  NtCreateEvent
+    #190  NtCreateFile
+    #196  NtDeviceIoControlFile
+    #198  NtFlushBuffersFile
+    #199  NtFreeVirtualMemory
+    #200  NtFsControlFile
+    #202  NtOpenFile
+    #203  NtOpenSymbolicLinkObject
+    #207  NtQueryDirectoryFile
+    #211  NtQueryInformationFile
+    #215  NtQuerySymbolicLinkObject
+    #217  NtQueryVirtualMemory
+    #218  NtQueryVolumeInformationFile
+    #219  NtReadFile
+    #224  NtResumeThread
+    #225  NtSetEvent
+    #226  NtSetInformationFile
+    #231  NtSuspendThread
+    #233  NtWaitForSingleObject
+    #234  NtWaitForSingleObjectEx
+    #236  NtWriteFile
+    #238  NtYieldExecution
+
+  [Ob] (2 imports)
+    #246  ObReferenceObjectByHandle
+    #250  ObfDereferenceObject
+
+  [Other] (5 imports)
+    #8    DbgPrint
+    #35   FscGetCacheSize
+    #37   FscSetCacheSize
+    #164  LaunchDataPage
+    #357  IdexChannelObject
+
+  [Ps] (3 imports)
+    #255  PsCreateSystemThreadEx
+    #258  PsTerminateSystemThread
+    #259  PsThreadObjectType
+
+  [Rtl] (10 imports)
+    #269  RtlCompareMemoryUlong
+    #277  RtlEnterCriticalSection
+    #279  RtlEqualString
+    #289  RtlInitAnsiString
+    #291  RtlInitializeCriticalSection
+    #294  RtlLeaveCriticalSection
+    #301  RtlNtStatusToDosError
+    #302  RtlRaiseException
+    #308  RtlUnicodeStringToAnsiString
+    #312  RtlUnwind
+
+  [Xbox] (8 imports)
+    #322  XboxHardwareInfo
+    #323  XboxHDKey
+    #324  XboxKrnlVersion
+    #325  XboxSignatureKey
+    #326  XeImageFileName
+    #327  XeLoadSection
+    #328  XeUnloadSection
+    #354  XboxAlternateSignatureKeys
+
+  [Xc] (4 imports)
+    #335  XcSHAInit
+    #336  XcSHAUpdate
+    #337  XcSHAFinal
+    #340  XcHMAC
+
+--- Certificate ---
+  LAN Key: 1eb887920c5653c34fc792a40399e183
+  Signature Key: 81f8de1fd9f724906d01abb1cdd86fc8
+  Game Ratings: 0x00000004
+
+======================================================================
+JSON exported to: E:\Blinx2project\game_files\mygame_analysis.json

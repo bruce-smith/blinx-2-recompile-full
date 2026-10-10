@@ -1,0 +1,6 @@
+[submodule "xboxrecomp"]
+	path = xboxrecomp
+	url = https://github.com/sp00nznet/xboxrecomp.git
+[submodule "blinx2-recomp"]
+	path = blinx2-recomp
+	url = https://github.com/bruce-smith/Blinx2-Recompiled.git

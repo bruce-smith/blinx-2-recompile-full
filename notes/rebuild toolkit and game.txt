@@ -1,0 +1,7 @@
+:: Rebuild xboxrecomp toolkit (from xboxrecomp dir)
+cd E:\Blinx2project\xboxrecomp
+cmake --build build --config Release
+
+:: Rebuild the game
+cd E:\Blinx2project\blinx2-recomp
+cmake --build build --config Release
