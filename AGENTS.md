@@ -82,7 +82,7 @@ Order and exact commands (see `notes/step N.txt` for expected output):
 ```powershell
 cd E:\Blinx2project\xboxrecomp
 py -3 -m tools.xbe_parser   E:\Blinx2project\game_files\default.xbe --json E:\Blinx2project\game_files\mygame_analysis.json
-py -3 -m tools.disasm       E:\Blinx2project\game_files\default.xbe --text-only --extra-sections DSOUND,D3D,D3DX,XGRPH,XPP,SRCADV,SRCED,SRCAC,PSFD_I,PSFD_B,PSFD_P,PSFD00 --seed-functions tools/recomp/output/seed_functions.json   # ~50 s
+py -3 -m tools.disasm       E:\Blinx2project\game_files\default.xbe --text-only --extra-sections DSOUND,D3D,D3DX,XGRPH,XPP,SRCADV,SRCED,SRCAC,PSFD_I,PSFD_B,PSFD_P,PSFD00 --seed-functions E:\Blinx2project\blinx2-recomp\seeds\seed_functions.json   # ~50 s
 py -3 -m tools.func_id      E:\Blinx2project\game_files\default.xbe -v                    # ~30 s
 py -3 -m tools.abi_analysis E:\Blinx2project\game_files\default.xbe -v                    # ~1 min
 py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --split 250 --gen-dir E:\Blinx2project\blinx2-recomp\src\recomp\gen   # ~15 min
@@ -116,6 +116,10 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     swept since 2026-10-10: 10,549 functions; PSFD00 20, PSFD_B 4.
   - **The MDL*/M*/G* blobs stay out** (they are data; scanning them created
     14,549 false functions).
+- **Seeds are tracked in `blinx2-recomp/seeds/seed_functions.json`.** Pass
+  that file to `--seed-functions`. `tools/recomp/output/` is an untracked
+  output dir, and `seed_from_log` writes there, so copy the result back
+  into `seeds/` and commit it after adding seeds.
 - **Seed workflow** (runtime-observed entry points `--text-only` cannot find
   statically): after a run, `py -3 -m tools.seed_from_log <log>` writes
   `tools/recomp/output/seed_functions.json`, then re-run the whole pipeline
