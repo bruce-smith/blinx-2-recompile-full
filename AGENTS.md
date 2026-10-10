@@ -17,8 +17,16 @@ Windows launcher `py -3` (Python 3.12 at `C:\Python312`).
   the existing `.gitignore` excludes `build/` and the fully generated
   `src/recomp/gen/`, so those never appear in `git status` — regenerate rather
   than version them.
-- The workspace root itself is **not** a git repo; only the two project
-  subdirectories are.
+- The workspace root `E:\Blinx2project` is itself a git repo (origin
+  github.com/bruce-smith/blinx-2-recompile-full). `xboxrecomp/` and
+  `blinx2-recomp/` are **submodules** (`.gitmodules`). `xboxrecomp` tracks
+  the fork github.com/bruce-smith/xboxrecomp, branch `blinx2-fixes`. Inside
+  it, `origin` is upstream sp00nznet with push `DISABLED`, and `fork` is where
+  to push. Never push upstream. `blinx2-recomp` tracks
+  github.com/bruce-smith/Blinx2-Recompiled `main`. After pushing new submodule
+  commits, bump the pointers here (`git add xboxrecomp blinx2-recomp`) and
+  push the superproject. The root `.gitignore` excludes `Blinx_2.xiso`, `game_files/`,
+  `ghidra_12.1.4_PUBLIC/` and the bulky `assets/` subdirectories.
 - `game_files/` — disc contents extracted from `Blinx 2.xiso` (root) with
   `xdvdfs.exe` (root; `xdvdfs.exe --help` for `unpack`/`ls`/`pack`):
   `default.xbe` (38 MB) + `.ipk`/`.iph` data.
@@ -29,6 +37,13 @@ Windows launcher `py -3` (Python 3.12 at `C:\Python312`).
   bring-up session (the DSOUND fix + audio-spin diagnosis).
 - `ghidra_12.1.4_PUBLIC/` — Ghidra install, used only by the optional
   symbol-naming step.
+- `assets/` — the `.ipk`/`.iph` archives extracted with blipks. `CATALOG.md`
+  covers formats, the per-archive and per-type inventory, and open
+  questions; `README.md` says how to reproduce. `extracted/` (~1.7 GB of
+  game data), `tools/` and `logs/` are gitignored. The `.ipk`s hold
+  textures, text-as-texture bundles, SE banks and camera/event data only.
+  Models, motions and stage geometry live in the XBE `MDL*`/`M*`/`G*`/`MOT*`
+  sections, not in the archives.
 
 Upstream docs are authoritative and good: `xboxrecomp/README.md` (Quick Start),
 `xboxrecomp/docs/GETTING_STARTED.md`, `xboxrecomp/tools/README.md`.
@@ -160,42 +175,64 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   false functions; adding DSOUND brought back 320 real ones. ~2.6 M lines in
   ~35 files. `--text-only` is correct for this title: the model-blob sections
   (MDL*/M*/G*) are data.
-- **Boot status (2026-10-09):** the old deterministic crash (~12 min, sound
-  init at sub_002AA810 → sub_00333C88, esp corruption from DSOUND stubs) is
-  **fixed**. Boot now runs 26+ min without crashing (17 billion kernel calls,
-  was ~3M at crash). New blocker: an **audio-queue lock spin** at boot:
-  - Threads #2/#3 = job workers (seeded `sub_002D702E`) endlessly running
-    poll jobs: `sub_002A1B20`/`sub_002A1BA0` yield + critical-section ping-pong
-  - Thread #1 (game main, spawned from `xbe_entry_point`) stuck in the audio
-    queue `sub_002A7220`/`sub_002A7260`, contended on lock `0x00F4A160`
-    (the game_audio object)
-  - Kernel spin signature: ordinal 277 RtlEnterCriticalSection ×7.7B, 294
-    RtlLeaveCriticalSection ×7.9B, 238 NtYieldExecution ×1B, 224/231
-    Suspend/ResumeThread churn
-  - Likely cause: APU/AC97 emulation (`RECOMP_AC97_READY=1`) never draining
-    the DSOUND queue → producer/consumer livelock
-  - Diagnostics that worked: `RECOMP_WATCHDOG_SECS=120` dump + `[CS]`
-    contention backtraces (`xbox_guest_backtrace(10)` in
-    `xbox_RtlEnterCriticalSection`) + kernel ordinal counts in the log
-- The `blinx2_0NN.rec` scan (000–359, each opened twice) is **not** the
-  blocker — the files exist in the game cache (~930 KB each) and load fine.
-  The `ERROR_PATH_NOT_FOUND` in the log is only the `media\dds\.dds` probe.
-- Game logic runs on a custom scripting VM in the `SRCADV`/`SRCED`/`SRCAC`
-  XBE sections; the scripts themselves live in the `.ipk` archives
-  (`notes/bytecode vm.txt` points at Nezogoku/ipk-extractor). 8 remaining
-  unresolved stubs are in SRCADV — next disasm target if the audio spin is
-  resolved first.
-- **Diagnostic left in place:** `bridge_NtYieldExecution` in
-  `xboxrecomp/src/kernel/kernel_bridge.c` logs the first 8 caller guest
-  addresses (`[YIELD] guest retaddr=... esp=...`). It names the spin site.
-  Remove it (or gate it behind an env var) once the audio spin is solved.
+- **Boot status (2026-10-09, late):** full write-up in
+  `notes/audio-spin-fix.md`. Boot now gets past audio init, DirectSound init
+  and the old 150–260 s SetLastError crash, and ran 1200 s with no crash. The
+  main thread was still working in the file/texture loader at the watchdog.
+  - **Audio-queue spin: fixed.** Root cause was in the runtime, not AC97:
+    `bridge_PsCreateSystemThreadEx` ignored `CreateSuspended`. Audio init
+    (`sub_002A1BE0`) creates `sub_002A1B20`/`sub_002A1BA0`/`sub_002A17B0`
+    suspended, stores their handles, then resumes them. Started early,
+    `sub_002A17B0` self-suspended on a handle slot (`0xF4A140`) that was still
+    0, failed (NtSuspendThread + RtlNtStatusToDosError ×675k), and spun with
+    the others on lock `0x00F4A160`. The bridge now creates the host thread
+    `CREATE_SUSPENDED` (log shows `(suspended)`).
+  - **DirectSound DSP doorbell: worked around.** `sub_003341BE`, holding
+    the DSOUND lock `0x00339ADC`, writes 3 to `0x803D0810` and spins until the
+    (stub) GP DSP clears it. `src/main.c` now defaults
+    `RECOMP_DSP_ACK=0x803D0810`.
+  - **SetLastError AV (`sub_00299449`): fixed.** The runtime's fixed layout
+    (fake TLS/KTHREAD blocks at `0x0070xxxx`, main stack
+    `0x00780000–0x00F80000`, bump heap from `0x00F80000`) sat on top of
+    Blinx 2's image, which ends at `0x0303AC20` (`.data` BSS alone runs to
+    `0x0103DB40`). Stack, CRT heap and game globals overwrote each other.
+    `xbox_memory_layout.[ch]` now moves that region above the image
+    (`0x03040000`, stack 1 MB, heap `0x031C0000–0x04000000`, 14 MB) when the
+    image reaches `0x00700000`. Smaller images keep the old layout.
+  - **Current blocker:** the main thread loops in the texture loader
+    (`sub_000367D0` → `sub_001B8830` → `sub_001B83B0`), failing loose opens
+    of `media\dds\.dds` (empty name) and a garbled
+    `media\dds\s\com_tex_us.ipk<bytes>2x-.dds`. That starts right after it
+    reads the nested pack inside `lng_us.ipk`. The ord 277/294/238/224/231
+    volume at that point is the 3 audio service threads' designed poll loop,
+    not a hang. The heap is at 14.4/14.9 MB. Details and next steps are in the
+    note.
+  - Diagnostics: `RECOMP_WATCHDOG_SECS`, `[CS]` contention backtraces, kernel
+    ordinal counts, `RECOMP_YIELD_TRACE=1` (the `[YIELD]` sampler, now
+    env-gated), `RECOMP_SAMPLE_MS=<n>` (main-thread host-RIP sampler in
+    `main.c`). The game now links with `/DEBUG`, so `[CRASH]` dumps print a
+    named native stack plus host thread id and `g_fs_base`.
+- The `blinx2_0NN.rec` scan (000–359, each opened twice) is **not** a
+  blocker, but it is slow: the sampler shows the main thread ~100% in
+  `ZwWriteFile` under stderr `fprintf`, so its 4–15 min length tracks how fast
+  stderr is drained, not guest compute. Per `assets/CATALOG.md` the Z: cache
+  slots are all zero, and `media\dds\.dds` is an empty texture name (no
+  missing asset). The XBE also references `media\Textures\Waterfog.xpr`,
+  which exists in no archive and not on the disc.
+- `SRCADV`/`SRCED`/`SRCAC` are x86 code paired with `DATADV`/`DATED` data.
+  There is **no** VM bytecode in the `.ipk` archives (`assets/CATALOG.md`).
+  8 remaining unresolved stubs are in SRCADV.
+- `blinx2-recomp/CMakeLists.txt` also carries a local `RECOMP_ABI_CHECK`
+  diagnostic (checks every direct call; its log stops after ~32 entries).
 
 ## Agent orchestration notes
 
-- This workspace is a candidate for Agent Orchestrator (AO) multi-agent runs:
-  two git repos (xboxrecomp, blinx2-recomp) with local edits; the workspace
-  root is not a repo. `ao spawn` needs `--standalone` unless a project is
-  registered at the repo level.
+- The root repo is registered as AO project `blinx2project`. AO worktrees of
+  it get **empty submodule dirs**, and both submodules carry uncommitted local
+  fixes, so a worktree can neither build nor see the current code. Until those
+  fixes are committed and pushed in the submodules, agents must work in
+  `E:\Blinx2project` directly (and coordinate edits to shared files such as
+  this one).
 - OpenCode session habit: it pauses for approval (esp. first file access).
   For overnight runs, prefer a harness/daemon with auto-approve, or Claude
   Code subagents (which do not prompt for permission to read project files).
