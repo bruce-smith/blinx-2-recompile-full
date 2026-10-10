@@ -245,7 +245,7 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   - **Current blocker (2026-10-10):** after `logo_mgs` → `logo_artoon` →
     `blinx2_opening` play, the game loads the title-screen textures. It misses
     the Partition5 cache, reads the nested `title_tex_us` pack from
-    `lng_us.ipk`, creates `Partition5\lng_us	itle_tex_us.tmp`, then at the
+    `lng_us.ipk`, creates `Partition5\lng_us\title_tex_us.tmp`, then at the
     900 s watchdog main is in D3DX texture creation (`sub_002F9B7D` →
     `sub_002F8C1C`) → CRT `malloc` `sub_0029A9C1` → `sub_0029BC9A`, with
     `ebx=esi=edi=0xFFFFFFFF`. Slow or stuck is not yet determined.
