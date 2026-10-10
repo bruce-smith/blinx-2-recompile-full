@@ -395,3 +395,33 @@ blocks in `KeWaitForSingleObject`. Ordinal 159 had 364 M calls, so the wait
 returns and is retried. The dump shows `PFIFO PUT=0 GET=0 REF=0`.
 Suspect: the emulated NV2A never advances the value D3D polls
 (reference counter / GET mirror), or never signals the event D3D waits on.
+
+## GPU-idle shim, heap map, PSFD regen; current blocker: Sofdec movie (2026-10-10)
+
+- **D3D GPU wait:** D3D's device (pointer at 0x2F1FB8) holds the CPU's next
+  fence time at `+0x2C` and a pointer at `+0x30` to the GPU's completed time
+  (written back by the GPU on hardware). Idle is `gpu + 2 == cpu`
+  (`sub_002E7E80`). With its flag set it also spins until NV2A reg 0x400B10
+  bits 2–6 equal `gpu << 2`. Nothing executes the pushbuffer by default
+  (RECOMP_PB_EXEC off) and the aperture is plain RAM, so
+  `sub_002E8110` waited forever (KeWaitForSingleObject ×364 M). Workaround in
+  blinx2-recomp `f779577`: a watcher sets `gpu = cpu - 2` and echoes the
+  register (`RECOMP_GPU_IDLE_SHIM=0` disables it). The runtime's own
+  `xbox_Nv2aMirrorFence` copies values verbatim and cannot express the `-2`.
+- **Heap exhaustion** at the movie start (14.9/14.9 MB): `xbox_SetMapSize(128
+  MB)` gives a 78 MB heap while the title still sees 64 MB of RAM. The real
+  overhead is the runtime's fixed 512 KB stack per guest thread (titles ask for
+  12–64 KB). Worth fixing in the runtime later.
+- **PSFD_I/B/P/00 are x86** (CRI Sofdec decoder, reached only via function
+  pointers), not data. They are now in `--extra-sections`. Seeds added via
+  `tools.seed_from_log` from a run log: `0x001B8BF0` (IPK loader thread) and
+  `0x00366CBC`, `0x003674FA` (XPP ICALL targets that failed to resolve). The
+  seed file is not tracked in git, so re-add these if it is lost. Result:
+  10,549 functions, 204 stubs, no unresolved ICALLs at run time.
+- **Current blocker:** the boot writes save metadata, caches `tank_tex.ipk`
+  into Partition5, opens `movie\logo_mgs.sfd`, and reads its first 2 MB (two
+  async 1 MB reads, MPEG-PS pack header `00 00 01 BA`). Then the movie stops
+  pulling data and main idles in its top loop (watchdog at 900 s). Next:
+  find what Sofdec waits on per frame: decode progress in PSFD (PSFD_I/PSFD_P
+  still show 0 detected functions), a vblank/present-driven tick, or its
+  audio (ADX) clock.

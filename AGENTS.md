@@ -82,7 +82,7 @@ Order and exact commands (see `notes/step N.txt` for expected output):
 ```powershell
 cd E:\Blinx2project\xboxrecomp
 py -3 -m tools.xbe_parser   E:\Blinx2project\game_files\default.xbe --json E:\Blinx2project\game_files\mygame_analysis.json
-py -3 -m tools.disasm       E:\Blinx2project\game_files\default.xbe --text-only --extra-sections DSOUND,D3D,D3DX,XGRPH,XPP,SRCADV,SRCED,SRCAC --seed-functions tools/recomp/output/seed_functions.json   # ~50 s
+py -3 -m tools.disasm       E:\Blinx2project\game_files\default.xbe --text-only --extra-sections DSOUND,D3D,D3DX,XGRPH,XPP,SRCADV,SRCED,SRCAC,PSFD_I,PSFD_B,PSFD_P,PSFD00 --seed-functions tools/recomp/output/seed_functions.json   # ~50 s
 py -3 -m tools.func_id      E:\Blinx2project\game_files\default.xbe -v                    # ~30 s
 py -3 -m tools.abi_analysis E:\Blinx2project\game_files\default.xbe -v                    # ~1 min
 py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --split 250 --gen-dir E:\Blinx2project\blinx2-recomp\src\recomp\gen   # ~15 min
@@ -111,7 +111,9 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   every regen.
   - **DOLBY is deliberately excluded:** it is the Dolby encoder's DSP56300
     microcode for the APU, not x86.
-  - **PSFD_*** sections are data too.
+  - **PSFD_I/B/P/00 are x86** (the CRI Sofdec movie decoder, reached only
+    through function pointers). They were wrongly thought to be data and are
+    swept since 2026-10-10: 10,549 functions; PSFD00 20, PSFD_B 4.
   - **The MDL*/M*/G* blobs stay out** (they are data; scanning them created
     14,549 false functions).
 - **Seed workflow** (runtime-observed entry points `--text-only` cannot find
@@ -133,7 +135,7 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   drop a second XBE in there and the lookup silently breaks (or pass
   `--analysis-json`).
 - Output is 43 `recomp_*.c` + `recomp_funcs.h` + `recomp_dispatch.c` +
-  `recomp_stubs_unresolved.c` + `recomp_types.h` (10,525 functions, ~3.0 M
+  `recomp_stubs_unresolved.c` + `recomp_types.h` (10,549 functions, ~3.0 M
   lines with the full extra-section list, 2026-10-10). `recomp_types.h` is written by the recompiler,
   not the template: "Cannot open include file: recomp_types.h" means the
   recomp run never finished.
@@ -186,7 +188,7 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
 
 - Retail NA XBE, title ID `0x4D530065`, LTCG build (`c:\B\Final - LTCG\...`),
   base `0x00010000`, 73 sections, 121 kernel imports.
-- **Current count:** 10,525 identified functions (2026-10-10, full
+- **Current count:** 10,549 identified functions (2026-10-10, full
   extra-section list), with 204 unresolved stubs left, ~3.0 M lines in 43
   files. The earlier "23,753" figure did not match the disasm summary, which
   had reported 8,688 for the DSOUND-only run. The 2026-10 data-ptr fix removed
@@ -223,12 +225,19 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     `--extra-sections` list (an unresolved D3DX stub leaked guest stack).
     **XBE section cap: fixed** (all 73 sections load). **stderr: buffered**
     (it was the boot's main cost).
-  - **Current blocker:** D3D waits for the GPU. Main is in the frame code →
-    D3D `sub_002E1060` → `sub_002E8420` → `sub_002E8110` (pushbuffer/fence
-    wait via `[device+0x30]`), retrying `KeWaitForSingleObject` (ordinal 159,
-    364 M calls). The dump shows `PFIFO PUT=0 GET=0 REF=0`. Suspect the
-    emulated NV2A never advances the progress value D3D polls, or never
-    signals its event.
+  - **D3D GPU wait: worked around** by a "GPU always idle" shim in
+    `src/main.c`. It reports every D3D fence complete
+    (`[[dev+0x30]] = [dev+0x2C] - 2`, device at `0x2F1FB8`) and echoes NV2A reg
+    `0x400B10`. Nothing is drawn. `RECOMP_GPU_IDLE_SHIM=0` disables it.
+  - **Heap exhaustion: fixed** with `xbox_SetMapSize(128 MB)` in `main.c`
+    (78 MB heap; the title still sees 64 MB of RAM).
+  - **Seeds added (2026-10-10):** `0x001B8BF0` (IPK loader thread), and
+    `0x00366CBC`/`0x003674FA` (XPP indirect-call targets that failed to
+    resolve).
+  - **Current blocker:** the intro movie `movie\logo_mgs.sfd` (CRI Sofdec,
+    MPEG-PS) opens and its first 2 MB are read (two async 1 MB reads, pack
+    header `00 00 01 BA`), then playback stops pulling data. Main idles in its
+    top loop. No unresolved ICALLs remain.
   - Diagnostics: `RECOMP_WATCHDOG_SECS`, `[CS]` contention backtraces, kernel
     ordinal counts, `RECOMP_YIELD_TRACE=1` (the `[YIELD]` sampler, now
     env-gated), `RECOMP_SAMPLE_MS=<n>` (main-thread host-RIP sampler in
