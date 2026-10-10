@@ -425,3 +425,31 @@ Suspect: the emulated NV2A never advances the value D3D polls
   find what Sofdec waits on per frame: decode progress in PSFD (PSFD_I/PSFD_P
   still show 0 detected functions), a vblank/present-driven tick, or its
   audio (ADX) clock.
+
+## Intro movies fixed: vblank counter (2026-10-10)
+
+- **Cause:** the main loop's frame pacing, `sub_0005F960` @ 0x00060475:
+  `while ((int)[0xAE7388] < target);`. The sampler had main 97.7% self in
+  `sub_0005F960`, and a write watch on 0xAE7388 never fired. The counter is
+  bumped only by the title's vblank callback **0x000604A0** (`mov eax,
+  [0xAE7388]; inc eax; mov [0xAE7388], eax; ret`), registered via D3D
+  `SetVerticalBlankCallback` (`sub_002E0D90`) and called from D3D's NV2A ISR
+  (`KeConnectInterrupt` vector 3 → 0x002EA2E0). The runtime raises that
+  interrupt only with `RECOMP_VBLANK` set, and the callback was never
+  disassembled (only its address is passed). With `RECOMP_VBLANK=1` every
+  call logged `[ICALL] Failed to resolve VA 0x000604A0`.
+- **Fix (blinx2-recomp `ae52bde`):** `main.c` defaults `RECOMP_VBLANK=1`.
+  `recomp_manual.c` implements the callback via `recomp_lookup_manual`.
+  Ruled out: letting the `.sfd` open fail. With `game_files\movie`
+  renamed, the game retries the open forever.
+- **Then:** Sofdec called PSFD_I `0x0033A340` / PSFD_P `0x0033B040`
+  (undetected), plus `0x002D0450`, and the run crashed on garbage pointers.
+  These are seeded now, together with `0x000604A0`. `0x001B8DE6`, which
+  `seed_from_log` proposed, was skipped: it is a return address inside
+  `sub_001B8C60` and appeared only because of the corruption. Full seed list
+  added on 2026-10-10: `0x001B8BF0`, `0x00366CBC`, `0x003674FA`,
+  `0x002D0450`, `0x0033A340`, `0x0033B040`, `0x000604A0`. Regen: 10,553
+  functions, 200 stubs.
+- **Verified:** `logo_mgs.sfd` → `logo_artoon.sfd` → `blinx2_opening.sfd`
+  all play. No unresolved ICALLs and no crash in 900 s. Next is the title-screen
+  texture load (see AGENTS.md "Current blocker").

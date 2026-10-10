@@ -196,7 +196,7 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   model-blob sections (MDL*/M*/G*) are data.
 - **Boot status (2026-10-10):** full write-up in
   `notes/audio-spin-fix.md`. Boot now gets past audio init, DirectSound init,
-  the texture loader and the old SetLastError crash, and **starts rendering**
+  the texture loader and the old SetLastError crash, and plays the intro movies
   (NV2A pushbuffer `PUT = GET = 0x2BB0`). It reaches this point in ~1–2 min
   and ran 900 s with no crash.
   - **Audio-queue spin: fixed.** Root cause was in the runtime, not AC97:
@@ -234,10 +234,21 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   - **Seeds added (2026-10-10):** `0x001B8BF0` (IPK loader thread), and
     `0x00366CBC`/`0x003674FA` (XPP indirect-call targets that failed to
     resolve).
-  - **Current blocker:** the intro movie `movie\logo_mgs.sfd` (CRI Sofdec,
-    MPEG-PS) opens and its first 2 MB are read (two async 1 MB reads, pack
-    header `00 00 01 BA`), then playback stops pulling data. Main idles in its
-    top loop. No unresolved ICALLs remain.
+  - **Intro movies: fixed.** The main loop paces frames on a vblank counter
+    (`0xAE7388`) bumped by the title's vblank callback `0x000604A0`, which
+    D3D's NV2A ISR calls. `main.c` now defaults `RECOMP_VBLANK=1` (the runtime
+    raises the interrupt only when it is set), and `recomp_manual.c` supplies
+    the callback, which the disassembler never found. Sofdec's PSFD_I/PSFD_P
+    entries (`0x0033A340`/`0x0033B040`), `0x002D0450` and `0x000604A0` are
+    now seeded (seed file not in git; recorded in the note). Result: 10,553
+    functions, 200 stubs, no unresolved ICALLs.
+  - **Current blocker (2026-10-10):** after `logo_mgs` → `logo_artoon` →
+    `blinx2_opening` play, the game loads the title-screen textures. It misses
+    the Partition5 cache, reads the nested `title_tex_us` pack from
+    `lng_us.ipk`, creates `Partition5\lng_us	itle_tex_us.tmp`, then at the
+    900 s watchdog main is in D3DX texture creation (`sub_002F9B7D` →
+    `sub_002F8C1C`) → CRT `malloc` `sub_0029A9C1` → `sub_0029BC9A`, with
+    `ebx=esi=edi=0xFFFFFFFF`. Slow or stuck is not yet determined.
   - Diagnostics: `RECOMP_WATCHDOG_SECS`, `[CS]` contention backtraces, kernel
     ordinal counts, `RECOMP_YIELD_TRACE=1` (the `[YIELD]` sampler, now
     env-gated), `RECOMP_SAMPLE_MS=<n>` (main-thread host-RIP sampler in
