@@ -269,3 +269,40 @@ name argument plus the caller retaddr at `sub_000367D0` entry (a small
 for that function). Then check whether the table is filled from the nested
 pack (LZSS-decompressed entries: a lifted bit-twiddling bug there would garble
 exactly this kind of data), or from a model/stage blob.
+
+## Texture-loader loop: snapshot findings (2026-10-10)
+
+Taken with `RECOMP_MEMDUMP_SECS=120` (last snapshot ~1680 s in, deep in the
+loop: 482 empty-name probes, 55 garbled).
+
+- **The garbled name is a pack-request descriptor read as a texture name.**
+  Pack load requests live in a 0x30-byte-stride array just below the archive
+  slot table, starting at 0xDE1178. Each entry is `name[0x20]`; `+0x20`
+  state (2); `+0x22` request id (the field `sub_00012F50` iterates via
+  `esi = 0xDE119A`, calling `sub_001B8240`); `+0x24` pointer to the nested
+  IPK header in the heap (0x032C1030 → `IPK1`); then 0x38C000 and the size
+  0x15BEA6. Entry 0 holds `lng_us\com_tex_us.ipk`. The bad name pointer is
+  **0xDE117D = descriptor + 5** (5 = `strlen("media")`, the root archive
+  slot 0 at 0xDE1250).
+- **The archive slots are fine.** Slot 0 (0xDE1250) is `media` with a live
+  handle token (0x48000169) and its header buffer (0x031D9320, `IPK1`).
+- **The texture-name tables are empty.** `sub_00037090(eax = {names,
+  count})` walks 0x24-byte entries (`name[0x20]` + texture id) and calls
+  `sub_000367D0` for each. Its callers in `sub_00172880` take the tables
+  from a per-stage structure (`0xDD9158`/`0xDD9170` + index, `+0x90`). The
+  whole 0xDD9140–0xDD91FC block is **zero** in the snapshot. With null or
+  leftover table pointers, the walk reads whatever the pointer arithmetic
+  lands on: the descriptor (garbled name), then zero-filled 0x24 strides
+  (empty names → `media\dds\.dds`).
+- Ruled out: the IPK opener `sub_001B8C60` header copy and per-record
+  normalise (`sub_001B8080`, which takes the substring after the last
+  backslash via strrchr `sub_002D53C0`) are faithfully lifted. `g_df` is
+  thread-local, so no direction-flag race. The bytes read from disk are
+  correct.
+
+**Next:** find what should fill the per-stage texture tables at 0xDD9158+
+(likely stage/model data in the `M*`/`DATED` sections fixed up at load, or
+records parsed from the nested pack) and why it didn't run or ran on the
+wrong data. Watch a table slot with `RECOMP_WATCH=0x00DD9170` (it is in
+`.data` BSS, so it can be armed) to catch the writer, or confirm nothing
+ever writes it.

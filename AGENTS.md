@@ -200,7 +200,7 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     (`0x03040000`, stack 1 MB, heap `0x031C0000–0x04000000`, 14 MB) when the
     image reaches `0x00700000`. Smaller images keep the old layout.
   - **Current blocker:** the main thread loops in the texture loader
-    (`sub_000367D0` → `sub_001B8830` → `sub_001B83B0`), failing loose opens
+    (`sub_00037090` → `sub_000367D0` → `sub_001B8830` → `sub_001B83B0`), failing loose opens
     of `media\dds\.dds` (empty name) and a garbled
     `media\dds\s\com_tex_us.ipk<bytes>2x-.dds`. That starts right after it
     reads the nested pack inside `lng_us.ipk`. The ord 277/294/238/224/231
