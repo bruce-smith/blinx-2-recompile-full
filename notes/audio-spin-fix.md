@@ -363,3 +363,35 @@ frames run through XGRPH `sub_0031D095` → `sub_0031CA69` →
 `0x0029D910`). These XGRPH routines were `g_esp += 4` stubs before and now
 run for real. It is either a slow-but-progressing lift (e.g. the shader
 assembler) or a loop that never terminates. Sampler run in progress.
+
+## XGRPH "stall" verdict, doorbell moved, stderr bottleneck (2026-10-10)
+
+- **XGRPH stall: slow-but-progressing, not a loop.** The sampler put the
+  newly lifted XGRPH code at a few samples each. **~75% of the main thread
+  was in `ZwWriteFile` under `fprintf`**, i.e. the unbuffered stderr log. On
+  a bad run the log managed ~4 lines/s and the boot did not reach audio
+  init in 25 min. blinx2-recomp `b6f555a` makes stderr fully buffered (1 MB,
+  500 ms flusher; crash handler and watchdog already fflush). The `.rec`
+  scan plus audio init now take ~1 min.
+  `RECOMP_STDERR_UNBUFFERED=1` restores the old behaviour.
+- **The DirectSound doorbell moved** (0x803D0810 → 0x80A20810) once D3D
+  allocated contiguous memory for real, and the hang returned. It is now
+  resolved at run time by a watcher thread following
+  `[[[[[[g_pDS@0xEC4C0C]+0x4]+0x14]+0x8]+0x10]] + 0x810`. The chain was
+  confirmed from the hang dump: the spinning frame's `this` 0x80A44134 sits
+  at `[g_pDS+4]+0x14`. The `+0xC` path read off the call chain leads to an
+  object with `[this+8] = 0`. Log: `[DSP] DirectSound doorbell at
+  0x80A20810` / `command acknowledged`.
+
+## Current blocker: D3D waits for the GPU (2026-10-10)
+
+With the doorbell acked the boot passes DirectSound init and **starts
+rendering**: the NV2A USER pushbuffer shows `PUT = GET = 0x2BB0`. At the
+900 s watchdog main is in the game's frame code (`sub_0005F960` →
+`sub_000604B0`) → D3D `sub_002E1060` → `sub_002E8420` →
+`sub_002E8110(device->[0x2C], 2)`. That is D3D's pushbuffer-space/fence
+wait. It compares a GPU progress value read through `[device+0x30]` and
+blocks in `KeWaitForSingleObject`. Ordinal 159 had 364 M calls, so the wait
+returns and is retried. The dump shows `PFIFO PUT=0 GET=0 REF=0`.
+Suspect: the emulated NV2A never advances the value D3D polls
+(reference counter / GET mirror), or never signals the event D3D waits on.

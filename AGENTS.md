@@ -192,10 +192,11 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   had reported 8,688 for the DSOUND-only run. The 2026-10 data-ptr fix removed
   14,549 false functions. `--text-only` is correct for this title: the
   model-blob sections (MDL*/M*/G*) are data.
-- **Boot status (2026-10-09, late):** full write-up in
-  `notes/audio-spin-fix.md`. Boot now gets past audio init, DirectSound init
-  and the old 150–260 s SetLastError crash, and ran 1200 s with no crash. The
-  main thread was still working in the file/texture loader at the watchdog.
+- **Boot status (2026-10-10):** full write-up in
+  `notes/audio-spin-fix.md`. Boot now gets past audio init, DirectSound init,
+  the texture loader and the old SetLastError crash, and **starts rendering**
+  (NV2A pushbuffer `PUT = GET = 0x2BB0`). It reaches this point in ~1–2 min
+  and ran 900 s with no crash.
   - **Audio-queue spin: fixed.** Root cause was in the runtime, not AC97:
     `bridge_PsCreateSystemThreadEx` ignored `CreateSuspended`. Audio init
     (`sub_002A1BE0`) creates `sub_002A1B20`/`sub_002A1BA0`/`sub_002A17B0`
@@ -205,9 +206,11 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     the others on lock `0x00F4A160`. The bridge now creates the host thread
     `CREATE_SUSPENDED` (log shows `(suspended)`).
   - **DirectSound DSP doorbell: worked around.** `sub_003341BE`, holding
-    the DSOUND lock `0x00339ADC`, writes 3 to `0x803D0810` and spins until the
-    (stub) GP DSP clears it. `src/main.c` now defaults
-    `RECOMP_DSP_ACK=0x803D0810`.
+    the DSOUND lock `0x00339ADC`, writes 3 to the GP scratch+0x810 and spins
+    until the (stub) GP DSP clears it. The address moves with contiguous
+    allocations (0x803D0810, then 0x80A20810), so `src/main.c` resolves it at
+    run time from `[[[[[[g_pDS@0xEC4C0C]+0x4]+0x14]+0x8]+0x10]]+0x810` and
+    clears it (`[DSP] …` log lines).
   - **SetLastError AV (`sub_00299449`): fixed.** The runtime's fixed layout
     (fake TLS/KTHREAD blocks at `0x0070xxxx`, main stack
     `0x00780000–0x00F80000`, bump heap from `0x00F80000`) sat on top of
@@ -216,14 +219,16 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     `xbox_memory_layout.[ch]` now moves that region above the image
     (`0x03040000`, stack 1 MB, heap `0x031C0000–0x04000000`, 14 MB) when the
     image reaches `0x00700000`. Smaller images keep the old layout.
-  - **Current blocker:** the main thread loops in the texture loader
-    (`sub_00037090` → `sub_000367D0` → `sub_001B8830` → `sub_001B83B0`), failing loose opens
-    of `media\dds\.dds` (empty name) and a garbled
-    `media\dds\s\com_tex_us.ipk<bytes>2x-.dds`. That starts right after it
-    reads the nested pack inside `lng_us.ipk`. The ord 277/294/238/224/231
-    volume at that point is the 3 audio service threads' designed poll loop,
-    not a hang. The heap is at 14.4/14.9 MB. Details and next steps are in the
-    note.
+  - **Texture-name flood: fixed** by regenerating with the full
+    `--extra-sections` list (an unresolved D3DX stub leaked guest stack).
+    **XBE section cap: fixed** (all 73 sections load). **stderr: buffered**
+    (it was the boot's main cost).
+  - **Current blocker:** D3D waits for the GPU. Main is in the frame code →
+    D3D `sub_002E1060` → `sub_002E8420` → `sub_002E8110` (pushbuffer/fence
+    wait via `[device+0x30]`), retrying `KeWaitForSingleObject` (ordinal 159,
+    364 M calls). The dump shows `PFIFO PUT=0 GET=0 REF=0`. Suspect the
+    emulated NV2A never advances the progress value D3D polls, or never
+    signals its event.
   - Diagnostics: `RECOMP_WATCHDOG_SECS`, `[CS]` contention backtraces, kernel
     ordinal counts, `RECOMP_YIELD_TRACE=1` (the `[YIELD]` sampler, now
     env-gated), `RECOMP_SAMPLE_MS=<n>` (main-thread host-RIP sampler in
