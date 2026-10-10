@@ -306,3 +306,18 @@ records parsed from the nested pack) and why it didn't run or ran on the
 wrong data. Watch a table slot with `RECOMP_WATCH=0x00DD9170` (it is in
 `.data` BSS, so it can be armed) to catch the writer, or confirm nothing
 ever writes it.
+
+## Loader bug: XBE section cap of 64 (fixed, xboxrecomp 74588d8)
+
+Comparing the snapshot with the XBE: every section matched except the last
+nine, which were 100% zero: MDLYP, MDLTT, MDLKF, MSHIP, MDLBEN, COMTNK,
+MDLTNK (3 MB), MOTP0, $$XTIMAGE (0x02C68D60–0x0303AC20). The loader capped
+`num_sections` at 64, and Blinx 2 has 73. The cap is now 1024 (the loop is
+bounded by the file size). The log now reads `Loaded 73/73 sections`.
+
+Effect on the texture loop: the empty/garbled probes remain (635/55), so
+the stage texture tables are a separate defect. The boot now goes further and
+crashes. Main faults reading guest 0xB2AC65AF in `sub_000364D0` (texture load),
+via `sub_0005F960` → `sub_000605D0` → `sub_00037010` → `sub_00037090` →
+`sub_000367D0` → `sub_000364D0`. That is presumably the loader acting on the
+data it got for a bad name instead of failing the open.
