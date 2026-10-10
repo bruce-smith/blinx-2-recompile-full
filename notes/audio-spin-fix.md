@@ -321,3 +321,45 @@ crashes. Main faults reading guest 0xB2AC65AF in `sub_000364D0` (texture load),
 via `sub_0005F960` → `sub_000605D0` → `sub_00037010` → `sub_00037090` →
 `sub_000367D0` → `sub_000364D0`. That is presumably the loader acting on the
 data it got for a bad name instead of failing the open.
+
+## Texture-name flood: root cause and fix (2026-10-10)
+
+**Root cause: an unresolved stub, not data.** A `--trace-functions` build
+(regenerated into a temp dir; only `recomp_0001.c` differed, so the regen is
+deterministic) showed guest esp going 0x031BE7A4 → 0x031BE32C across
+`call sub_000364D0` (the DDS→D3D texture builder). It came back 0x478 bytes
+low. `sub_000367D0` then popped garbage, and `sub_00037090`'s name pointer
+(`edi`) came back 0. From then on it walked "names" at 0x24, 0x48, … (low
+memory, zeros), which produced the `media\dds\.dds` flood. The leak was the
+D3DX routine `sub_002F4EBC`. It was lifted as 36 bytes (prologue + `sub esp,
+0x434`), and its two continuations `0x002F4EE0`/`0x002F4F06` were never
+disassembled. They compiled to `g_esp += 4` stubs, so the function returned
+with its frame still on the stack (`[ABI] … epilogue never ran, esp delta
+-1084`).
+
+**Why:** the gen had been produced from a disasm run that swept only DSOUND
+as an extra section. The summary showed D3DX 3 functions, XGRPH 10, D3D 94.
+There were 389 unresolved stubs.
+
+**Fix (Approach C):** re-ran the whole pipeline with `--extra-sections
+DSOUND,D3D,D3DX,XGRPH,XPP,SRCADV,SRCED,SRCAC` (DOLBY excluded: DSP56300
+microcode, not x86):
+- Functions 8,688 → 10,525: D3DX 459, XGRPH 735, D3D 295, XPP 230, SRCADV 261,
+  SRCED 21, SRCAC 20; `.text` unchanged at 8,182. `tail_jump_alias` 1,301 (no
+  flood).
+- Stubs 389 → 204 (157 of them in `.text`).
+- `sub_002F4EBC` is now 924 bytes / 314 insns.
+
+**Verified:** full rebuild and a 1500 s boot. **0** empty-name probes and
+**0** `com_tex_us` probes (were 635/55). No crash. ABI checker: 5 lines.
+
+## Next blocker: boot stalls in newly lifted XGRPH code
+
+The same run no longer reaches audio init (no `PsCreateSystemThreadEx`
+#2–#4, heap at block #4). At the watchdog, main (esp 0x031BDE88) was in
+compute: 58 k kernel calls in 1500 s, mostly CRT-heap CS enter/leave. Its
+frames run through XGRPH `sub_0031D095` → `sub_0031CA69` →
+`sub_0031E929` (recursive, about 8 KB deep) → the CRT heap (`0x0029D7BA` /
+`0x0029D910`). These XGRPH routines were `g_esp += 4` stubs before and now
+run for real. It is either a slow-but-progressing lift (e.g. the shader
+assembler) or a loop that never terminates. Sampler run in progress.

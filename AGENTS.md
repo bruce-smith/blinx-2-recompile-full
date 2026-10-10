@@ -82,7 +82,7 @@ Order and exact commands (see `notes/step N.txt` for expected output):
 ```powershell
 cd E:\Blinx2project\xboxrecomp
 py -3 -m tools.xbe_parser   E:\Blinx2project\game_files\default.xbe --json E:\Blinx2project\game_files\mygame_analysis.json
-py -3 -m tools.disasm       E:\Blinx2project\game_files\default.xbe --text-only --extra-sections DSOUND,D3D,D3DX,XGRPH,XPP,DOLBY,SRCADV --seed-functions tools/recomp/output/seed_functions.json   # ~50 s
+py -3 -m tools.disasm       E:\Blinx2project\game_files\default.xbe --text-only --extra-sections DSOUND,D3D,D3DX,XGRPH,XPP,SRCADV,SRCED,SRCAC --seed-functions tools/recomp/output/seed_functions.json   # ~50 s
 py -3 -m tools.func_id      E:\Blinx2project\game_files\default.xbe -v                    # ~30 s
 py -3 -m tools.abi_analysis E:\Blinx2project\game_files\default.xbe -v                    # ~1 min
 py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --split 250 --gen-dir E:\Blinx2project\blinx2-recomp\src\recomp\gen   # ~15 min
@@ -91,13 +91,29 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
 - Skipping `abi_analysis` still builds, but every generated signature falls
   back to a guess (cdecl / 0 params).
 - **`--extra-sections` is load-bearing, not optional.** `--text-only` skips
-  every section but `.text`, and Blinx 2's real code also lives in the
-  D3D/D3DX/XGRPH/DSOUND/XPP/DOLBY/SRCADV sections. Without them those calls
-  compile to `g_esp += 4` stubs → guest stack corruption → deterministic
-  crashes (2026-10-09: the boot crash at sub_002AA810 was exactly this).
-  Adding DSOUND alone produced 320 real functions and fixed the crash; keep
-  the full real-code list when regenerating. The MDL*/M*/G* blobs stay out
-  (they are data; scanning them created 14,549 false functions).
+  every section but `.text`, and Blinx 2's real x86 also lives in the
+  D3D/D3DX/XGRPH/DSOUND/XPP/SRCADV/SRCED/SRCAC sections. Code reached only by
+  jumps in an unswept section is never found, so it compiles to a
+  `g_esp += 4` stub in `recomp_stubs_unresolved.c`. That gives guest stack
+  corruption and deterministic crashes or garbage. Two cases so far:
+  - 2026-10-09, sub_002AA810: DSOUND not swept. Adding DSOUND gave 320 real
+    functions.
+  - 2026-10-10, texture loader: the gen had been produced with only DSOUND
+    swept. D3DX `sub_002F4EBC` was lifted as 36 bytes, and its two
+    continuations were stubs. It returned with its 0x434 frame on the stack,
+    which zeroed the caller's name pointer and caused the
+    `media\dds\.dds` probe flood.
+
+  With the full list the disasm finds 10,525 functions (was 8,688): D3DX
+  3→459, XGRPH 10→735, D3D 94→295, XPP 11→230, SRCADV 66→261. Unresolved
+  stubs dropped 389→204, and 157 of the remaining ones are in `.text`.
+  `tail_jump_alias` is 1,301. Check `recomp_stubs_unresolved.c`'s count after
+  every regen.
+  - **DOLBY is deliberately excluded:** it is the Dolby encoder's DSP56300
+    microcode for the APU, not x86.
+  - **PSFD_*** sections are data too.
+  - **The MDL*/M*/G* blobs stay out** (they are data; scanning them created
+    14,549 false functions).
 - **Seed workflow** (runtime-observed entry points `--text-only` cannot find
   statically): after a run, `py -3 -m tools.seed_from_log <log>` writes
   `tools/recomp/output/seed_functions.json`, then re-run the whole pipeline
@@ -116,9 +132,9 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   any `*_analysis.json` only while `game_files/` holds exactly one `.xbe` —
   drop a second XBE in there and the lookup silently breaks (or pass
   `--analysis-json`).
-- Output is ~35 `recomp_*.c` + `recomp_funcs.h` + `recomp_dispatch.c` +
-  `recomp_types.h` (~23,753 functions, ~2.6 M lines after the 2026-10 data-ptr
-  fix + DSOUND extra-section). `recomp_types.h` is written by the recompiler,
+- Output is 43 `recomp_*.c` + `recomp_funcs.h` + `recomp_dispatch.c` +
+  `recomp_stubs_unresolved.c` + `recomp_types.h` (10,525 functions, ~3.0 M
+  lines with the full extra-section list, 2026-10-10). `recomp_types.h` is written by the recompiler,
   not the template: "Cannot open include file: recomp_types.h" means the
   recomp run never finished.
 - `blinx2-recomp/src/recomp/gen/` is gitignored and fully regenerated — never
@@ -170,11 +186,12 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
 
 - Retail NA XBE, title ID `0x4D530065`, LTCG build (`c:\B\Final - LTCG\...`),
   base `0x00010000`, 73 sections, 121 kernel imports.
-- **Current count:** 23,753 identified functions (2026-10-09, after the
-  DSOUND `--extra-sections` fix). The 2026-10 data-ptr fix removed 14,549
-  false functions; adding DSOUND brought back 320 real ones. ~2.6 M lines in
-  ~35 files. `--text-only` is correct for this title: the model-blob sections
-  (MDL*/M*/G*) are data.
+- **Current count:** 10,525 identified functions (2026-10-10, full
+  extra-section list), with 204 unresolved stubs left, ~3.0 M lines in 43
+  files. The earlier "23,753" figure did not match the disasm summary, which
+  had reported 8,688 for the DSOUND-only run. The 2026-10 data-ptr fix removed
+  14,549 false functions. `--text-only` is correct for this title: the
+  model-blob sections (MDL*/M*/G*) are data.
 - **Boot status (2026-10-09, late):** full write-up in
   `notes/audio-spin-fix.md`. Boot now gets past audio init, DirectSound init
   and the old 150–260 s SetLastError crash, and ran 1200 s with no crash. The
