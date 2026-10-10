@@ -85,9 +85,12 @@ py -3 -m tools.xbe_parser   E:\Blinx2project\game_files\default.xbe --json E:\Bl
 py -3 -m tools.disasm       E:\Blinx2project\game_files\default.xbe --text-only --extra-sections DSOUND,D3D,D3DX,XGRPH,XPP,SRCADV,SRCED,SRCAC,PSFD_I,PSFD_B,PSFD_P,PSFD00 --seed-functions E:\Blinx2project\blinx2-recomp\seeds\seed_functions.json   # ~50 s
 py -3 -m tools.func_id      E:\Blinx2project\game_files\default.xbe -v                    # ~30 s
 py -3 -m tools.abi_analysis E:\Blinx2project\game_files\default.xbe -v                    # ~1 min
-py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --split 250 --gen-dir E:\Blinx2project\blinx2-recomp\src\recomp\gen   # ~15 min
+py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --split 250 --gen-dir E:\Blinx2project\blinx2-recomp\src\recomp\gen --exclude-manual E:\Blinx2project\blinx2-recomp\src\recomp_manual.c   # ~15 min
 ```
 
+- **`--exclude-manual` is required.** `recomp_manual.c` wraps
+  `sub_002F89C3` (the D3DX JPEG guard). The recomp must emit the generated
+  body as `sub_002F89C3_gen`, or the link fails / the guard is lost.
 - Skipping `abi_analysis` still builds, but every generated signature falls
   back to a guess (cdecl / 0 params).
 - **`--extra-sections` is load-bearing, not optional.** `--text-only` skips
@@ -246,13 +249,19 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     entries (`0x0033A340`/`0x0033B040`), `0x002D0450` and `0x000604A0` are
     now seeded (seed file not in git; recorded in the note). Result: 10,553
     functions, 200 stubs, no unresolved ICALLs.
-  - **Current blocker (2026-10-10):** after `logo_mgs` → `logo_artoon` →
-    `blinx2_opening` play, the game loads the title-screen textures. It misses
-    the Partition5 cache, reads the nested `title_tex_us` pack from
-    `lng_us.ipk`, creates `Partition5\lng_us\title_tex_us.tmp`, then at the
-    900 s watchdog main is in D3DX texture creation (`sub_002F9B7D` →
-    `sub_002F8C1C`) → CRT `malloc` `sub_0029A9C1` → `sub_0029BC9A`, with
-    `ebx=esi=edi=0xFFFFFFFF`. Slow or stuck is not yet determined.
+  - **Title textures: fixed.** D3DX's format dispatcher tried libjpeg
+    (`sub_002F89C3`) on a non-JPEG texture; libjpeg's setjmp/longjmp error path
+    cannot resume in lifted code (esp came back +0x90, ebx/esi/edi = -1, then
+    an endless surface-chain walk). `recomp_manual.c` now returns E_FAIL unless
+    the data starts with the JPEG SOI `FF D8` (needs `--exclude-manual`).
+  - **Reached the title screen (2026-10-10):** intro movies →
+    `title_tex_us` / `uniform_tex` → title background movie
+    `title_movie_1a.sfd` + title music `adx\song_TITLE.adx` → `tsinfo_tex_us`,
+    `media\plcom_tex`. Nothing is drawn (GPU-idle shim; `RECOMP_PB_EXEC` off).
+  - **Current blocker:** about 8 min in, during `plcom_tex`, the process ends
+    silently (no watchdog, no `[CRASH]`). The last log lines are new
+    "epilogue never ran" ABI violations in `sub_00044900` / `sub_00044220`
+    (esp delta -132). Exit code under investigation.
   - Diagnostics: `RECOMP_WATCHDOG_SECS`, `[CS]` contention backtraces, kernel
     ordinal counts, `RECOMP_YIELD_TRACE=1` (the `[YIELD]` sampler, now
     env-gated), `RECOMP_SAMPLE_MS=<n>` (main-thread host-RIP sampler in

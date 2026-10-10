@@ -453,3 +453,27 @@ Suspect: the emulated NV2A never advances the value D3D polls
 - **Verified:** `logo_mgs.sfd` → `logo_artoon.sfd` → `blinx2_opening.sfd`
   all play. No unresolved ICALLs and no crash in 900 s. Next is the title-screen
   texture load (see AGENTS.md "Current blocker").
+
+## Title textures fixed: D3DX JPEG decoder longjmp (2026-10-10)
+
+- **Narrowing.** Sampler: main 57.5% self in D3DX `sub_002F4EBC`. Snapshot:
+  its `[ebp+0x10]` (reused as a loop counter) was ~2.3e9, so the surface-chain
+  walk `eax = [eax+0x28]` loop never ended. The ABI checker flagged the format
+  dispatcher `sub_002F9B7D` returning with ebx/esi/edi = 0xFFFFFFFF.
+- **Trace** (`--trace-functions` on the dispatcher and its decoders; temp
+  regen, only `recomp_0034.c` swapped). For a non-DDS 0x432C-byte texture the
+  dispatcher tries `9B4D` → `906B` → `9822` (DDS) → **`89C3`** → `92F7` →
+  `8C1C` (accepts). `sub_002F89C3` (libjpeg) returned with **esp 0x90 too
+  high** (0x031BF6D8 → 0x031BF768): libjpeg's error path is
+  `setjmp`/`longjmp`, which lifted code cannot resume.
+- **Fix (blinx2-recomp `e59b633`):** `recomp_manual.c` defines
+  `sub_002F89C3` → E_FAIL (0x80004005) unless the data starts with
+  `FF D8`, otherwise it calls `sub_002F89C3_gen`. The recomp must run with
+  `--exclude-manual …\recomp_manual.c`. A corrupt real JPEG would still hit
+  the lifting limit.
+- **Verified:** title screen reached. `title_tex_us`, `uniform_tex`,
+  `title_movie_1a.sfd` + `adx\song_TITLE.adx` (title music), then
+  `tsinfo_tex_us` and `media\plcom_tex` load. No unresolved ICALLs.
+- **Next:** about 8 min in, the process exits silently while `plcom_tex` is
+  cached. The last lines are ABI "epilogue never ran" in
+  `sub_00044900`/`sub_00044220` (esp delta -132).
