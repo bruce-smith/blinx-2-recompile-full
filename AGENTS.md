@@ -294,15 +294,22 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   - **Rendering with `RECOMP_PB_EXEC=1 RECOMP_FB_WINDOW=1`:** the Sofdec logo,
     the textured title screen and the textured 3D stage 01-01 all appear in the
     FB window/BMP dumps (`RECOMP_FB_DUMP=fb_`).
-  - **Input: wired but not enumerating.** `main.c` calls `xbox_OhciInit()`
-    and routes the OHCI apertures through the VEH. With `RECOMP_USB=1` the
-    controller goes operational and the device arrives, but there are 0 setup
-    transfers. The control ED at physical `0x0085C670` lives in the contiguous
-    window, while OHCI `bus_resolve` maps any address below the image top
-    (`0x0303AC20`, the model blobs are mapped whole) to the image. The
-    contiguous arena's physical range overlaps the image, so the address is
-    ambiguous. The APU (`mcpx_apu_phys`) has the same image-first rule; the
-    NV2A executor checks contiguous memory first.
+  - **Input: enumerates, but Start does not reach the title yet.** `main.c`
+    calls `xbox_OhciInit()` (opt-in via `RECOMP_USB=1`) and, by default, uses
+    a 128 MB contiguous window with the arena above the image
+    (`xbox_SetContigLayout`; opt-out `RECOMP_CONTIG_LEGACY=1`). Before that
+    the arena overlapped the image (top `0x0303AC20`) and OHCI read its
+    control ED out of the image. Seeded XPP callbacks (`0x0036BA63`,
+    `0x0036AFFE`, …) complete enumeration: 8 setups, and thousands of
+    interrupt reports flow. With `RECOMP_XINPUT_TRACE=1`, though, the game's
+    pad poll `sub_0021C290` (XGetDeviceChanges → XInputOpen →
+    XInputGetState, called from `sub_0005C930`) runs only three times at
+    boot: it opens port 2, reads once, and is never called again. Its
+    callers sit in `0x0005F960–0x000604A0`, next to the vblank callback
+    `0x000604A0` that `recomp_manual.c` stubs. That's the next lead.
+    `MmAllocateContiguousMemoryEx` from XPP asks for highest `0x00FFFFFF`
+    and gets `0x03DA0000`. It is logged as `[CONTIG] ... above the caller's
+    highest` and is harmless for the OHCI model so far.
   - Diagnostics: `RECOMP_WATCHDOG_SECS`, `[CS]` contention backtraces, kernel
     ordinal counts, `RECOMP_YIELD_TRACE=1` (the `[YIELD]` sampler, now
     env-gated), `RECOMP_SAMPLE_MS=<n>` (main-thread host-RIP sampler in
