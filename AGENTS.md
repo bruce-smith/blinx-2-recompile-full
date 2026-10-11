@@ -282,12 +282,27 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     in 900 s) + `adx\song_TITLE.adx` → after the title idles the game loads the
     stage-1-1 textures (`stg0101_tex_us`, most likely the attract demo) and
     runs a normal frame loop. Sampler: ~53% vblank wait, ~31% D3D fence wait,
-    the rest spread over game logic. **Nothing is drawn** (GPU-idle shim,
-    `RECOMP_PB_EXEC` off) and **there is no input**: `RECOMP_USB=1` is inert
-    because nothing calls `xbox_OhciInit()`, so `RECOMP_PAD_PRESS` never
-    reaches the title. `stg0101_tex_us.tmp` is read but never renamed
-    (harmless so far). Next milestones: input wiring, then rendering (see
-    `notes/rendering-options.md`).
+    the rest spread over game logic. Without `RECOMP_PB_EXEC` nothing is
+    drawn (GPU-idle shim). See `notes/rendering-options.md`.
+  - **Dirty-disc error after the title: fixed (2026-10-11).** It was not I/O.
+    The contiguous arena (64 MB bump allocator) ran out right after the
+    `stg0101` cache copy (`[CONTIG] arena exhausted`, 66,973,696 bytes used),
+    deterministically and with or without `RECOMP_PB_EXEC`. `main.c` now
+    defaults `RECOMP_HEAP_RECLAIM=1`. The stage cache copies then finish
+    (`.tmp` → `.ipk` renames OK) and the attract demo
+    (`demoplay\r01s01demo.dat`) plays.
+  - **Rendering with `RECOMP_PB_EXEC=1 RECOMP_FB_WINDOW=1`:** the Sofdec logo,
+    the textured title screen and the textured 3D stage 01-01 all appear in the
+    FB window/BMP dumps (`RECOMP_FB_DUMP=fb_`).
+  - **Input: wired but not enumerating.** `main.c` calls `xbox_OhciInit()`
+    and routes the OHCI apertures through the VEH. With `RECOMP_USB=1` the
+    controller goes operational and the device arrives, but there are 0 setup
+    transfers. The control ED at physical `0x0085C670` lives in the contiguous
+    window, while OHCI `bus_resolve` maps any address below the image top
+    (`0x0303AC20`, the model blobs are mapped whole) to the image. The
+    contiguous arena's physical range overlaps the image, so the address is
+    ambiguous. The APU (`mcpx_apu_phys`) has the same image-first rule; the
+    NV2A executor checks contiguous memory first.
   - Diagnostics: `RECOMP_WATCHDOG_SECS`, `[CS]` contention backtraces, kernel
     ordinal counts, `RECOMP_YIELD_TRACE=1` (the `[YIELD]` sampler, now
     env-gated), `RECOMP_SAMPLE_MS=<n>` (main-thread host-RIP sampler in
