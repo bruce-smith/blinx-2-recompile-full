@@ -206,3 +206,47 @@ Screens:
 
 - `checkpoint_png/hub_gameplay_reflection.png`: gameplay, reflection visible.
 - `checkpoint_png/hub_deferred_raster_12fps.png`: the hub at ~12 fps.
+
+## 2026-10-11 (later): double-click window; why the hub stays at ~12 fps
+
+**Window fix** (blinx2-recomp `e496400`, xboxrecomp `5a02ba6`):
+- the exe is playable on double-click: PB_EXEC, FB window, USB pad and
+  keyboard default on;
+- `RECOMP_HEADLESS=1` opts out;
+- closing the window ends the process;
+- the working directory is the exe's folder;
+- `blinx2_recomp.log` when there is no console;
+- a crash MessageBox.
+
+Verified with a clean environment launched through explorer.exe:
+`checkpoint_png/double_click_window.png`.
+
+**Perf, after the frame-parallel rasteriser** (xboxrecomp `ce8e979`..`251c5b3`):
+
+- **Workers claim 4-row bands** from a counter; the executor helps instead
+  of sleeping. This is correct but fps-neutral (~12–12.7), because the
+  pipeline is not throughput-bound.
+- **Raster drains with work pending, by call site:** ~75% are the drain
+  before GET is published, then clears, then visibility reports.
+- **Main thread** (`RECOMP_SAMPLE_MS`, hub):
+  - ~60% in `sub_002E7F30`, D3D's **pushbuffer kick**. It sets 0x10000 in
+    NV2A 0x100410 (PFB flush) and spins until the "GPU" clears it, then
+    writes PUT.
+  - 15% in the fence wait `sub_002E8110`.
+  - The executor meanwhile yield-spins (`Sleep(0)`) about 30% of the time.
+  - So the kick handshake serialises the title and the executor: the bit is
+    cleared only by the executor's loop, between segments.
+- **Acking 0x100410 from a separate thread does not work.** Moving all the
+  busy/interrupt/idle acks there, or only the flush bit, made the intro
+  never flip (0 fps from boot, PUT = GET). The flush bit evidently has to
+  stay ordered with execution. Reverted.
+- The `[KERNEL] summary` `fflush(stderr)` on the game thread is gone
+  (`1733753`). It was 15% of main's samples in WriteFile, mostly at boot.
+- Hang hunt: `RECOMP_WATCHDOG_STALL=<n>` (`ddb6f8c`) dumps when flips stop.
+  The hang has not recurred in three runs without the GPU sampler.
+
+Next for speed: make the executor loop return to the flush ack faster. The
+GET drain is where it blocks; a drain that waits only for batches older
+than the current kick, or GET published per batch, would let the next kick
+through while the workers finish. After that, the vertex-program
+interpreter.
