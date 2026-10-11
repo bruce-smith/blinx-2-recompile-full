@@ -291,7 +291,17 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
       15.6 ms.
     - **Rendering:** without `RECOMP_PB_EXEC` nothing is drawn (GPU-idle
       shim). With it, the title, the attract stage and the hub render
-      textured in the FB window and dumps. See `notes/rendering-options.md`.
+      textured in the FB window and dumps. See `notes/rendering-options.md`
+      and the running log `notes/rendering-log.md`. The hub floor's
+      stair-step bands are fixed: the floor reflection renders into
+      *swizzled* surfaces, which the executor now writes swizzled
+      (xboxrecomp `54869bf`). It also culls back faces now (`cda813f`). With
+      PB_EXEC the hub runs at about 4 fps; main sits 92% in D3D's
+      pushbuffer-space wait (`sub_002E7F30`), so the executor thread sets the
+      frame rate.
+      Under PB_EXEC, Start (not A) leaves the CHALLENGE "GAME PAUSED"
+      screen. Use `RECOMP_PAD_LIVE=<file>` and append `start:500` /
+      `a:600`, because 200 ms presses can fall between 4 fps polls.
     - **Pipeline:** `--extra-sections` as listed above. Seeds
       (`blinx2-recomp/seeds/seed_functions.json`, 42 entries) cover the XPP
       USB callbacks and the opening-movie, attract and hub ICALL targets. Any
