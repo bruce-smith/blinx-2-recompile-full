@@ -294,22 +294,28 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   - **Rendering with `RECOMP_PB_EXEC=1 RECOMP_FB_WINDOW=1`:** the Sofdec logo,
     the textured title screen and the textured 3D stage 01-01 all appear in the
     FB window/BMP dumps (`RECOMP_FB_DUMP=fb_`).
-  - **Input: enumerates, but Start does not reach the title yet.** `main.c`
-    calls `xbox_OhciInit()` (opt-in via `RECOMP_USB=1`) and, by default, uses
-    a 128 MB contiguous window with the arena above the image
-    (`xbox_SetContigLayout`; opt-out `RECOMP_CONTIG_LEGACY=1`). Before that
-    the arena overlapped the image (top `0x0303AC20`) and OHCI read its
-    control ED out of the image. Seeded XPP callbacks (`0x0036BA63`,
-    `0x0036AFFE`, …) complete enumeration: 8 setups, and thousands of
-    interrupt reports flow. With `RECOMP_XINPUT_TRACE=1`, though, the game's
-    pad poll `sub_0021C290` (XGetDeviceChanges → XInputOpen →
-    XInputGetState, called from `sub_0005C930`) runs only three times at
-    boot: it opens port 2, reads once, and is never called again. Its
-    callers sit in `0x0005F960–0x000604A0`, next to the vblank callback
-    `0x000604A0` that `recomp_manual.c` stubs. That's the next lead.
-    `MmAllocateContiguousMemoryEx` from XPP asks for highest `0x00FFFFFF`
-    and gets `0x03DA0000`. It is logged as `[CONTIG] ... above the caller's
-    highest` and is harmless for the OHCI model so far.
+  - **Input works (2026-10-11).** Run with `RECOMP_USB=1` (plus
+    `RECOMP_PAD_PRESS=0x10` or `RECOMP_PAD_SCRIPT` when there's no host pad).
+    Start skips the logo movies and leaves the title (`gamestart_adx.adx` →
+    `R0_opening.sfd` → hub level `mgtu_ts`). It took three fixes:
+    - `main.c` calls `xbox_OhciInit()` and routes the OHCI apertures through
+      the VEH.
+    - By default the contiguous window is 128 MB, with the arena above the
+      image (`xbox_SetContigLayout`; opt-out `RECOMP_CONTIG_LEGACY=1`).
+      Before that the arena overlapped the image (top `0x0303AC20`), and OHCI
+      read its control ED out of the image.
+    - `xbox_ContiguousOwnsPhys` includes physical page 0. XAPI's USB stack
+      carves its pool from that page (`0x80001000` minus what is left), so
+      XInput handles and report buffers sit at `0x80000xxx`. Without this the
+      reports went to low RAM and the buttons stayed 0.
+
+    The seeded XPP callbacks (`0x0036BA63`, `0x0036AFFE`, …) complete
+    enumeration. `RECOMP_XINPUT_TRACE=1` logs XInputGetState
+    (`sub_00368457`) and XGetDeviceChanges (`sub_00367F0E`). It logs only on
+    change or every 32nd call, and the game polls once per frame at about
+    5.5 fps. `MmAllocateContiguousMemoryEx` from XPP asks for highest
+    `0x00FFFFFF` and gets `0x03DA0000`: logged as `[CONTIG] ... above the
+    caller's highest`, harmless so far.
   - Diagnostics: `RECOMP_WATCHDOG_SECS`, `[CS]` contention backtraces, kernel
     ordinal counts, `RECOMP_YIELD_TRACE=1` (the `[YIELD]` sampler, now
     env-gated), `RECOMP_SAMPLE_MS=<n>` (main-thread host-RIP sampler in
