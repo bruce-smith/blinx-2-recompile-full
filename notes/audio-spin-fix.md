@@ -477,3 +477,34 @@ Suspect: the emulated NV2A never advances the value D3D polls
 - **Next:** about 8 min in, the process exits silently while `plcom_tex` is
   cached. The last lines are ABI "epilogue never ran" in
   `sub_00044900`/`sub_00044220` (esp delta -132).
+
+## Silent exit at plcom_tex: host stack overflow from a false split (2026-10-10)
+
+- **Making it visible.** `main.c` now reports host STACK OVERFLOW (raw
+  WriteFile), other fatal exception codes, SIGABRT and CRT exit. The PowerShell
+  exit code needs `$null = $p.Handle` before `WaitForExit()`. Result: exit
+  `0xC00000FD` after ~668 s, `[CRASH] host STACK OVERFLOW … guest esp=0x0310DD34`
+  (~712 KB of guest stack against the title's 64 KB).
+- **Cause.** `sub_00044900` (0x44900–0x44FD8) was lifted as six pieces: false
+  starts 0x449B2, 0x44CFB, 0x44F3E, 0x44F48, 0x44F76, plus 0x44DDA/0x44E72 as
+  unresolved stubs. Its loop over `plcom_tex` entries crossed the pieces, so each
+  iteration was a C tail call that added a host frame and leaked 0x84 bytes of
+  guest stack (`[ABI] … epilogue never ran, esp delta -132`).
+- **Dead ends.** Seeding all 186 code-like stub targets regressed: newly lifted
+  XGRPH `sub_00318413` corrupted the CRT heap, crash at 4 s. Seeding just the
+  two stubs did not stop the overflow, and seeded starts block coalescence.
+  Both were reverted.
+- **Fix.** `--coalesce-functions blinx2-recomp/seeds/coalesce.json`. Two
+  xboxrecomp coalescer changes were needed (fork `ce832a6`, 11 tests):
+  `internal_alias_starts` (a bare `tail_jump_alias` reached only from inside
+  the owner is not independent evidence; verified from `xrefs.json`, every
+  jump into the five starts is internal), and allowing an interior's end to
+  run into the jump-table gap up to the next function.
+- **Verified:** 1500 s, no overflow, no `[ABI]` for `sub_0004xxxx`. The boot
+  continues to `lng_us\stg0101_tex_us`.
+- **setjmp/SEH survey:** libjpeg is the only setjmp/longjmp user (its error
+  manager `0x2FE89D` has one caller, the guarded JPEG decoder). `_setjmp3` and
+  `longjmp` have no direct callers. SEH frames are everywhere but
+  `RtlRaiseException` never shows up. No general strategy is needed yet; the
+  real systemic risk is the remaining 199 unresolved stubs, which need
+  case-by-case evidence.

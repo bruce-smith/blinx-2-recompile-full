@@ -85,9 +85,13 @@ py -3 -m tools.xbe_parser   E:\Blinx2project\game_files\default.xbe --json E:\Bl
 py -3 -m tools.disasm       E:\Blinx2project\game_files\default.xbe --text-only --extra-sections DSOUND,D3D,D3DX,XGRPH,XPP,SRCADV,SRCED,SRCAC,PSFD_I,PSFD_B,PSFD_P,PSFD00 --seed-functions E:\Blinx2project\blinx2-recomp\seeds\seed_functions.json   # ~50 s
 py -3 -m tools.func_id      E:\Blinx2project\game_files\default.xbe -v                    # ~30 s
 py -3 -m tools.abi_analysis E:\Blinx2project\game_files\default.xbe -v                    # ~1 min
-py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --split 250 --gen-dir E:\Blinx2project\blinx2-recomp\src\recomp\gen --exclude-manual E:\Blinx2project\blinx2-recomp\src\recomp_manual.c   # ~15 min
+py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --split 250 --gen-dir E:\Blinx2project\blinx2-recomp\src\recomp\gen --exclude-manual E:\Blinx2project\blinx2-recomp\src\recomp_manual.c --coalesce-functions E:\Blinx2project\blinx2-recomp\seeds\coalesce.json   # ~15 min
 ```
 
+- **`--coalesce-functions …\seeds\coalesce.json` is required.** It
+  merges false splits whose loops would otherwise become host-stack
+  recursion (`sub_00044900` overflowed the host stack ~11 min in). Needs
+  xboxrecomp `ce832a6`+ (the `internal_alias_starts` key).
 - **`--exclude-manual` is required.** `recomp_manual.c` wraps
   `sub_002F89C3` (the D3DX JPEG guard). The recomp must emit the generated
   body as `sub_002F89C3_gen`, or the link fails / the guard is lost.
@@ -258,10 +262,15 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     `title_tex_us` / `uniform_tex` → title background movie
     `title_movie_1a.sfd` + title music `adx\song_TITLE.adx` → `tsinfo_tex_us`,
     `media\plcom_tex`. Nothing is drawn (GPU-idle shim; `RECOMP_PB_EXEC` off).
-  - **Current blocker:** about 8 min in, during `plcom_tex`, the process ends
-    silently (no watchdog, no `[CRASH]`). The last log lines are new
-    "epilogue never ran" ABI violations in `sub_00044900` / `sub_00044220`
-    (esp delta -132). Exit code under investigation.
+  - **Host stack overflow at `plcom_tex`: fixed.** `sub_00044900` was
+    split at five false interior starts; a loop across them became tail-call
+    recursion (exit `0xC00000FD` ~11 min in). It is coalesced via
+    `seeds/coalesce.json`. `main.c` now reports stack overflow, other fatal
+    exceptions, `abort()` and CRT exit, so no death is silent.
+  - **Current state (2026-10-10):** 1500 s boot with no crash. After the
+    title screen it caches `media\plcom_tex` and moves on to the stage
+    textures (`lng_us\stg0101_tex_us`). The next blocker is not yet
+    characterised.
   - Diagnostics: `RECOMP_WATCHDOG_SECS`, `[CS]` contention backtraces, kernel
     ordinal counts, `RECOMP_YIELD_TRACE=1` (the `[YIELD]` sampler, now
     env-gated), `RECOMP_SAMPLE_MS=<n>` (main-thread host-RIP sampler in
