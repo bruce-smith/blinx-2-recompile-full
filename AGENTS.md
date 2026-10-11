@@ -277,13 +277,28 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     `GetExitCodeThread` (`sub_00298004`) read SignalState/ExitStatus from page 0
     and polled finished loader threads forever. Thread handles now get a
     per-handle guest KTHREAD stub that tracks the host thread.
-  - **Current state (2026-10-11): title screen and attract loop run.**
-    Intro movies → title textures → `title_movie_1a.sfd` looping (opened 57×
-    in 900 s) + `adx\song_TITLE.adx` → after the title idles the game loads the
-    stage-1-1 textures (`stg0101_tex_us`, most likely the attract demo) and
-    runs a normal frame loop. Sampler: ~53% vblank wait, ~31% D3D fence wait,
-    the rest spread over game logic. Without `RECOMP_PB_EXEC` nothing is
-    drawn (GPU-idle shim). See `notes/rendering-options.md`.
+  - **Current state (2026-10-11): input works; the game reaches the hub.**
+    Intro movies → title → (Start) `gamestart_adx.adx` → `R0_opening.sfd`
+    (or `title_movie_2a.sfd` once a save exists) → hub level `mgtu_ts` with
+    its first "CHALLENGE" prompt. No unresolved ICALLs, no crash.
+    - **Speed:** about 30 fps in the hub, vblank-bound (83% of main-thread
+      samples in the frame-pacing wait at `0x00060475`); it was about 4.5 fps.
+      Two fixes did it. First, the runtime's vblank now really reaches the
+      title at 60 Hz: the cadence is on QPC, and the NV2A ack thread no
+      longer wipes the pending bits; `XBOX_NV2A_VBLANK_MARK` emulates the
+      write-1-to-clear ack. Second, `main.c` calls `timeBeginPeriod(1)`, so
+      the GPU-idle shim's `Sleep(1)` no longer stalls D3D's fence wait for
+      15.6 ms.
+    - **Rendering:** without `RECOMP_PB_EXEC` nothing is drawn (GPU-idle
+      shim). With it, the title, the attract stage and the hub render
+      textured in the FB window and dumps. See `notes/rendering-options.md`.
+    - **Pipeline:** `--extra-sections` as listed above. Seeds
+      (`blinx2-recomp/seeds/seed_functions.json`, 42 entries) cover the XPP
+      USB callbacks and the opening-movie, attract and hub ICALL targets. Any
+      new `[ICALL] Failed to resolve` that is a gap-start gets seeded, and
+      the pipeline is rerun.
+    - A save (`game_files/UDATA/4d530065/13C91777168C/`) is created once the
+      hub is reached; it changes the post-title flow.
   - **Dirty-disc error after the title: fixed (2026-10-11).** It was not I/O.
     The contiguous arena (64 MB bump allocator) ran out right after the
     `stg0101` cache copy (`[CONTIG] arena exhausted`, 66,973,696 bytes used),
