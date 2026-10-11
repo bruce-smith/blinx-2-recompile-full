@@ -295,10 +295,12 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
       and the running log `notes/rendering-log.md`. The hub floor's
       stair-step bands are fixed: the floor reflection renders into
       *swizzled* surfaces, which the executor now writes swizzled
-      (xboxrecomp `54869bf`). It also culls back faces now (`cda813f`). With
-      PB_EXEC the hub runs at about 4 fps; main sits 92% in D3D's
-      pushbuffer-space wait (`sub_002E7F30`), so the executor thread sets the
-      frame rate.
+      (xboxrecomp `54869bf`). It also culls back faces now (`cda813f`).
+      With PB_EXEC the hub runs at about 12 fps and the title at about 60.
+      Rasterisation is deferred across draw calls onto a 16-thread pool
+      (`c40d37a`, `554bea6`). Before that it was about 4.5 fps, with main 92%
+      in D3D's pushbuffer-space wait (`sub_002E7F30`). The raster workers set
+      the frame rate now. Numbers are in `notes/rendering-log.md`.
       Under PB_EXEC, Start (not A) leaves the CHALLENGE "GAME PAUSED"
       screen. Use `RECOMP_PAD_LIVE=<file>` and append `start:500` /
       `a:600`, because 200 ms presses can fall between 4 fps polls.

@@ -98,3 +98,111 @@ combiners. That is 5.2x overdraw of 640x480. It includes two 512x512
 reflection passes, a 320x240 downsample, and three full-screen
 post-processing passes of 120–280k pixels each. There are about 400 draw
 calls per frame.
+
+## 2026-10-11: PB_EXEC speed, software vs D3D11: measurements and recommendation
+
+Same build and pad script; hub steady state from the `[GPU] fps` lines:
+
+| run | hub fps | note |
+|---|---|---|
+| baseline (16 raster threads) | 3.6–6.1, typically ~4.5 | main 85% in `sub_002E7F30` (pushbuffer wait) |
+| `RECOMP_NO_COMBINERS=1` | 5.8 | cheap shading; main still 91% waiting |
+| `RECOMP_RASTER_THREADS=1` | 0.8–2.2 | |
+
+Reading the numbers:
+
+- **Shading is not the main cost.** Removing the combiner evaluation only
+  takes the hub from ~4.5 to 5.8 fps.
+- **The structure is the cost.** The executor thread is ~70% inside its own
+  `xf_rows`. A draw is spread over the pool only above 2048 px
+  (`NV_XFQ_PX_PER_THREAD`), and a hub frame is ~400 draw calls, most of them
+  small, so most pixels are shaded serially on the executor thread with the
+  other 15 threads idle. Each parallel draw then pays a wake/wait round trip.
+- The non-pixel executor work is `pb_walk`, the vertex programs (`nv2a_vsh_run`
+  ~6%), setup and stderr. It is about 17% of the thread, i.e. roughly 40 ms
+  of a ~230 ms frame.
+- Pixel work is about 1.6 M combiner pixels per frame, ~160 ms single-threaded
+  at the current per-pixel cost. Spread over 15 threads that is about 11 ms.
+
+What the existing D3D11 code really is: `src/nv2a/nv2a_pgraph_d3d11.c` is a
+650-line translator for 2D menus (inline-array quads, a hard-coded font atlas,
+several wrong method numbers). It is not a backend. A real one would reuse
+`src/d3d`'s microcode→HLSL (`d3d8_vsh.c`), combiners→HLSL
+(`d3d8_combiners.c`) and the swizzle/DXT code. It would still need new
+pieces:
+
+- render targets that alias guest memory, both directions: Blinx samples its
+  own swizzled RTs and downsampled copies every frame;
+- vertex and index buffers streamed from guest memory on every draw;
+- surface/zeta management;
+- CPU readback for flips and the FB window;
+- moving the device to the executor thread.
+
+That is weeks of work before it matches today's image.
+
+**Recommendation: keep the software rasteriser and make it frame-parallel.**
+Defer rasterisation across draw calls: snapshot per-draw state (combiners,
+4 texture stages, blend, depth, alpha, fog, colour mask, surface/zeta) into a
+state table, bin set-up triangles, and let all threads own interleaved rows
+across the whole batch. Flush on:
+
+- surface/zeta change, clear, flip, or the queue filling;
+- a texture stage that names a surface written in the current batch (render
+  to texture).
+
+Expected: the executor drops to its non-pixel ~40 ms, so roughly 15–25 fps,
+with pixel work overlapped. After that, the next steps are the
+vertex-program interpreter (`nv2a_vsh_run`), a per-texture decode cache in
+place of the per-tap DXT decode, and integer blending. A D3D11 backend stays
+the long-term route to 60 fps, mipmaps and filtering fidelity. Revisit it once
+software rendering stops being the blocker for gameplay work.
+
+## 2026-10-11: frame-parallel software rasteriser: hub ~4.5 → ~12 fps
+
+xboxrecomp `0ec5a2f`..`554bea6`. Steps and hub fps (same pad script, 16
+raster threads, 32-thread host):
+
+| step | hub fps | commit |
+|---|---|---|
+| per-draw rasterisation (start) | ~4.5 | |
+| NOP/WAIT_FOR_IDLE/BREAK_VB_CACHE no longer ranked | – | `0ec5a2f` |
+| no `fflush(stderr)` per pushbuffer kick (was 7% of the executor) | – | `ee9cc4f` |
+| deferred batches + PixState snapshots, shared stats | 6.4–7.5 | (part of `c40d37a`) |
+| + prepared combiners, per-size swizzle tables | 7.6–8.6 | `554bea6` |
+| + per-thread pixel stats (contended `s_gpu.pixels` per pixel) | **~12** (title ~60) | `c40d37a` |
+
+Findings along the way:
+
+- **The executor now waits on the workers** (`rq_wait` ~56%), so per-pixel
+  cost and worker scaling decide the frame rate. The single-thread pixel
+  profile (`RECOMP_RASTER_THREADS=1`, before the combiner change):
+  - `nv2a_rc_eval` ~30% self (`read_rgb` 20%, `unpack_cached` 6%);
+  - `sample_tex` 12%;
+  - blending ~7%.
+- **Draining at GET** (`nv2a_pb_exec_drain`, before the NV2A thread publishes
+  GET = PUT) costs nothing measurable. Without it the waits move to flips
+  and clears, at the same fps. It stays on because it keeps "GET passed"
+  meaning "pixels done".
+- **Stipple on the hub floor's lower left:** fine dots where the grated
+  stairs reflect. It appears identically with per-draw sync
+  (`RECOMP_RASTER_BATCH=0`), so it is not a deferral race. Probably the
+  grate texture itself (nearest/bilinear, no mipmaps). Open, low priority.
+- The r1 run stalled once at 1070 flips (title spinning on critical
+  sections, PUT = GET). It did not reproduce in eight later runs. Watch for
+  it.
+
+Next for speed:
+
+- **False sharing on swizzled render targets:** vertically adjacent pixels
+  share cache lines, and rows are dealt out y mod n. Deal swizzled targets
+  out in 2x2/4x4 tiles instead.
+- **Integer blending** in `put_pixel`.
+- **Mip selection:** it would also cut texel-cache misses on minified
+  textures.
+- **The vertex-program interpreter** (`nv2a_vsh_run`, ~14% of the executor)
+  once the workers stop being the limit.
+
+Screens:
+
+- `checkpoint_png/hub_gameplay_reflection.png`: gameplay, reflection visible.
+- `checkpoint_png/hub_deferred_raster_12fps.png`: the hub at ~12 fps.
