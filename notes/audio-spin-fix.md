@@ -508,3 +508,25 @@ Suspect: the emulated NV2A never advances the value D3D polls
   `RtlRaiseException` never shows up. No general strategy is needed yet; the
   real systemic risk is the remaining 199 unresolved stubs, which need
   case-by-case evidence.
+
+## Cache renames, thread-exit poll; title screen running (2026-10-11)
+
+- **Renames** (xboxrecomp `f1efce4`): `NtSetInformationFile` class 10 was
+  unimplemented. The game caches each pack as `<name>.tmp` and renames it to
+  `.ipk`. The first attempt failed silently: XAPI MoveFile passes
+  `z:\lng_us\title_tex_us.ipk` with RootDirectory `0xFFFFFFFD`
+  (ObDosDevicesDirectory), which is now translated as an absolute path.
+  Every failure path logs.
+- **Thread-exit poll** (xboxrecomp `5430cca`): main called
+  ObReferenceObjectByHandle/ObfDereferenceObject ×2.65 B. A 128 MB RAM
+  snapshot (blinx2-recomp `a7d82b6`) showed loader threads #5 (0x001B8BF0)
+  and #6 (0x0005E410) had already exited. XAPI `GetExitCodeThread`
+  (`sub_00298004`) reads `[obj+4]` (SignalState) and `[obj+0x120]`
+  (ExitStatus). The runtime returned obj = NULL, so it read zeros and got
+  STILL_ACTIVE forever. Thread handles now get a guest KTHREAD stub that
+  mirrors the host thread.
+- **Result:** the title screen loops `title_movie_1a.sfd` (57 opens in
+  900 s) with `song_TITLE.adx`, then the attract stage textures load and a
+  normal frame loop runs. No rendering (GPU shim) and no input:
+  `xbox_OhciInit()` is never called, so `RECOMP_USB` / `RECOMP_PAD_PRESS`
+  are inert (no `PAD:` / `[OHCI]` lines in an `RECOMP_USB=1` run).

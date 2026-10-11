@@ -267,10 +267,27 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     recursion (exit `0xC00000FD` ~11 min in). It is coalesced via
     `seeds/coalesce.json`. `main.c` now reports stack overflow, other fatal
     exceptions, `abort()` and CRT exit, so no death is silent.
-  - **Current state (2026-10-10):** 1500 s boot with no crash. After the
-    title screen it caches `media\plcom_tex` and moves on to the stage
-    textures (`lng_us\stg0101_tex_us`). The next blocker is not yet
-    characterised.
+  - **Cache renames: fixed** (xboxrecomp `f1efce4`). `NtSetInformationFile`
+    class 10 (FileRenameInformation) is implemented. XAPI passes drive-letter
+    names (`z:\lng_us\x.ipk`) relative to RootDirectory `0xFFFFFFFD`
+    (ObDosDevicesDirectory). Cached packs now become `.ipk`
+    (`%LOCALAPPDATA%\xboxrecomp\Cache`).
+  - **Thread-exit poll: fixed** (xboxrecomp `5430cca`).
+    `ObReferenceObjectByHandle` returned a NULL object, so XAPI
+    `GetExitCodeThread` (`sub_00298004`) read SignalState/ExitStatus from page 0
+    and polled finished loader threads forever. Thread handles now get a
+    per-handle guest KTHREAD stub that tracks the host thread.
+  - **Current state (2026-10-11): title screen and attract loop run.**
+    Intro movies → title textures → `title_movie_1a.sfd` looping (opened 57×
+    in 900 s) + `adx\song_TITLE.adx` → after the title idles the game loads the
+    stage-1-1 textures (`stg0101_tex_us`, most likely the attract demo) and
+    runs a normal frame loop. Sampler: ~53% vblank wait, ~31% D3D fence wait,
+    the rest spread over game logic. **Nothing is drawn** (GPU-idle shim,
+    `RECOMP_PB_EXEC` off) and **there is no input**: `RECOMP_USB=1` is inert
+    because nothing calls `xbox_OhciInit()`, so `RECOMP_PAD_PRESS` never
+    reaches the title. `stg0101_tex_us.tmp` is read but never renamed
+    (harmless so far). Next milestones: input wiring, then rendering (see
+    `notes/rendering-options.md`).
   - Diagnostics: `RECOMP_WATCHDOG_SECS`, `[CS]` contention backtraces, kernel
     ordinal counts, `RECOMP_YIELD_TRACE=1` (the `[YIELD]` sampler, now
     env-gated), `RECOMP_SAMPLE_MS=<n>` (main-thread host-RIP sampler in
