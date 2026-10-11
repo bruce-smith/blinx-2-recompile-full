@@ -250,3 +250,15 @@ GET drain is where it blocks; a drain that waits only for batches older
 than the current kick, or GET published per batch, would let the next kick
 through while the workers finish. After that, the vertex-program
 interpreter.
+
+**Async GET** (xboxrecomp, after `251c5b3`): the NV2A thread now hands the
+queue to the workers at GET-publish time instead of draining it. A/B within
+one run (a flag file toggled every 40 s, same paused gameplay view): **~14.7
+fps vs ~12.8 waiting**, three alternations each. Cross-run fps comparisons
+are unreliable, because the pad script is time-based and faster runs reach
+different, cheaper or costlier scenes. A/B inside one run.
+
+**Hang:** the sync-mode control run rZ0 hung after ~3 min without any
+sampler (fps → 0, PUT = GET). So it is a real, intermittent hang, not
+caused by the GPU sampler: 3 of ~25 runs. Runs with
+`RECOMP_WATCHDOG_STALL=15` have not hit it yet.
