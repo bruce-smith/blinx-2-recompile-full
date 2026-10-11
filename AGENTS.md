@@ -165,9 +165,23 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
 
 ## Running the game
 
-- `build\Release\blinx_2_recomp.exe`, launched **from `build\Release`** —
-  `xbox_kernel.log` is opened with a relative path and lands in the current
-  directory.
+- **Double-click `build\Release\blinx_2_recomp.exe`** to play. Since
+  2026-10-11 (blinx2-recomp `e496400`) it starts with these defaults:
+  - `RECOMP_PB_EXEC`, `RECOMP_FB_WINDOW`, `RECOMP_USB` and
+    `RECOMP_KEYBOARD` are on when unset;
+  - the window is titled "Blinx 2 (recomp)" and opens in front;
+  - closing the window ends the process.
+
+  Keyboard: arrows = d-pad, Enter = Start, Z/X/A/S = A/B/X/Y,
+  Backspace = Back, I/J/K/L = right stick, numpad 8/4/2/6 = left stick.
+  A host XInput pad also works.
+- The exe makes its own folder the working directory, so `xbox_kernel.log`
+  lands next to it. Without a console, stderr goes to `blinx2_recomp.log`
+  there. An unhandled crash shows a MessageBox.
+- **Agents / scripted runs: set `RECOMP_HEADLESS=1`.** That means no window,
+  no dialog, and none of the four defaults. Set
+  `RECOMP_PB_EXEC`/`RECOMP_USB`/… explicitly, and redirect stderr. The
+  untracked `build\Release\run_p4.ps1` does this.
 - `blinx2-recomp/src/main.c` hardcodes `BLINX_2_XBE_PATH` /
   `BLINX_2_DIR` as absolute `E:\Blinx2project\game_files` paths and the
   entry point `0x0029A1DA`. Move game_files and you must edit main.c.
