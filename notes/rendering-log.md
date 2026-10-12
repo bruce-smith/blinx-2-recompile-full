@@ -315,3 +315,35 @@ double-click.
   model's completion timing.
 - **Ownership:** this now belongs to the input/timing worker (`src/usb` is
   theirs).
+
+## 2026-10-11 (night): culling fix, visibility tests, invisible characters
+
+- **Magenta attract stage: fixed** (xboxrecomp `de4de43`). Blinx renders
+  stage geometry into two 256x256 targets through a y-up viewport
+  (c[58].y > 0). Culling judged winding on screen only, so those passes kept
+  their hidden faces, and the main pass sampled the wrong image. The winding
+  is now taken relative to the viewport's y direction. The game also
+  switches CULL_FACE FRONT/BACK per object.
+- **Visibility tests** (GET_REPORT) gate drawing. `RECOMP_ZPASS_FORCE=1`
+  (diagnostic) restores the attract **sky** and cliff shading. Counting
+  itself works: tests in open sky count pixels, ones behind cliffs fail on
+  depth, and the surfaces have no AA. Which test hides the sky is still
+  open. A diff of the frame trace is confounded by the demo camera
+  differing between runs, so this needs one run that toggles mid-flight.
+- **Invisible characters: the title never submits them.** In the attract
+  demo no batch of character size reaches the executor, and that is not
+  because something is lost:
+  - none of the 196 unresolved stubs runs (new `[STUB]` logging, `d1f4a6a`);
+  - there are no fixed-function batches;
+  - no positions are NaN;
+  - every main-ring JUMP goes to the ring start, so no precompiled
+    pushbuffers are skipped;
+  - no draw method is unhandled;
+  - no P8 (fmt 0x0B) texture is sampled at all;
+  - forcing visibility does not bring them back.
+
+  So the game decides not to draw them. Next: find the character render
+  call in the guest (e.g. from the MDLPL model loader / draw list) and
+  trace why it is skipped (a failed load, a flag, a time check).
+- Hub fps with the audio worker's APU-on default: ~10.6 (was ~13–15
+  without audio).
