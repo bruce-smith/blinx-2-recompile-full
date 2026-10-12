@@ -394,3 +394,14 @@ executor, and the executor's pace (it acks D3D's kick) is the frame rate.
   indicative.
 - Render-to-texture drains now count only sampled stages (`5c103b5`):
   -20% drains.
+
+## 2026-10-12: method survey indexed
+
+The executor walker's per-word `note()` (the method inventory) searched
+every (subchannel, method) pair seen so far, linearly. It runs for inline
+vertex data too, and it was ~15% of the NV2A thread (`pb_walk` self). A
+direct slot table fixed it (xboxrecomp `a945b67`): the hub went from 10.7
+to 12.1 fps on the same pad script. The NV2A thread is now ~27% idle
+(`Sleep(0)` polling for PUT). Of the busy time, the top costs are the
+combiners (`nv2a_rc_eval_prep` ~12%), texture sampling and the vertex
+programs.
