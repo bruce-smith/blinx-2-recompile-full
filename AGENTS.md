@@ -196,10 +196,23 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
 - **Culling** judges winding against the viewport's y direction (xboxrecomp,
   2026-10-11). Blinx 2 renders stage geometry into 256x256 targets through a
   y-up viewport, and screen-only winding tinted the attract stage magenta.
-- **Known issue:** with USB on, about 1 run in 8 freezes (no flips, music may
-  continue). The guest is stuck in XPP's USB pending-transfer list
-  (`sub_0036E7A5`, a list cycle). See `notes/rendering-log.md`; not fixed
-  yet. Scripted runs use `RECOMP_WATCHDOG_STALL=15` to catch it.
+- **USB/XInput freeze: fixed (2026-10-12, P5).**
+  - Cause: XPP pops its TD free list (`sub_0036E33D`, `[0xF2E0CC]`) without
+    a lock. It does so from both the USB DPC and the game thread's
+    XInputSetState, which raises to DISPATCH. Here DPCs ran regardless, so
+    the same TD was handed out twice. That left the pad's IN endpoint dead
+    and a rumble request pending forever: the game spins in `sub_0005E060`.
+    It was not a list cycle.
+  - Fixes:
+    - xboxrecomp `dd55908`: OHCI retires TDs in hardware order, and keeps
+      an always-on endpoint history that dumps on a "BAD HeadP".
+    - xboxrecomp `c9dd72f`: DISPATCH_LEVEL is a process-wide lock for guest
+      raises and host DPCs (not ISRs), with a 2 s bounded wait.
+      `RECOMP_DISPATCH_LOCK=0` opts out; `RECOMP_DPC_RACE_TRACE=1` is the
+      diagnostic; the test is `tests/kernel_dispatch_lock`.
+  - 10-min runs with the lock on: 0 freezes in 8 (2 in 4 without it).
+  - The OHCI Frame Number Overflow is raised since `d3fd7f8`.
+  - `RECOMP_WATCHDOG_STALL=15` still catches any stall in scripted runs.
 - **Never kill `blinx_2_recomp.exe` by image name**: the human may be
   playing. Kill only the PID you started. If their instance blocks a
   relink, build the `xbox_kernel` target alone to check that it compiles.
