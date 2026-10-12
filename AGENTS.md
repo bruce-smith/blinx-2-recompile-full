@@ -175,8 +175,11 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   Keyboard: arrows = d-pad, Enter = Start, Z/X/A/S = A/B/X/Y,
   Q/E = White/Black, 1/3 = LT/RT, Shift/Ctrl = L3/R3 (thumb clicks),
   Backspace = Back, I/J/K/L = right stick, numpad 8/4/2/6 = left stick.
-  A host XInput pad also works (host LB/RB = White/Black); the mapping is
-  printed to the log at start (xboxrecomp `006bf0e`).
+  A host XInput pad also works (host LB/RB = White/Black, triggers analog);
+  the mapping is printed to the log at the first poll (xboxrecomp
+  `006bf0e`). First-person pitch needs a gen made with xboxrecomp `aa5e481`+
+  (`movsx` from bp/sp sign-extends; 9 `SX16(LO16(ebp))` lines in
+  recomp_0005/0013/0016).
   Window: opens at 2x, resizable with aspect kept; Alt+Enter or F11 =
   fullscreen, F9 = nearest/linear (`RECOMP_FB_SCALE`, `RECOMP_FB_FILTER`).
 - The right-stick pitch fix (`aa5e481`, lifter `movsx` from bp/sp) needs a
