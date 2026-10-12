@@ -258,7 +258,13 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   - heap "physical" addresses aliased the contiguous arena (now
     `XBOX_PHYS_RAM_TAG`; `RECOMP_PHYS_RAM_TAG=0` opts out);
   - pitch was ignored (linear resampler now);
-  - a DSOUND ISR crash in `sub_00335C18` (trapped-FE PIO FIFO).
+  - a DSOUND ISR crash in `sub_00335C18` (trapped-FE PIO FIFO);
+  - static, "reverb" and a silent opening movie (`c85c259`). The APU read
+    DSOUND's contiguous voice/SGE/notifier structs from the game image and
+    wrote notifications into it. APU address resolution must check the
+    contiguous arena before the image range when RAM tagging is on. **Any new
+    device model that follows guest physical pointers needs the same order
+    as OHCI `bus_resolve` and `mcpx_apu_phys`.**
 
   Details: `E:\blinx2_wt\audio\notes-audio.md`.
 
