@@ -431,3 +431,39 @@ The default treats "commands read" as done. That is enough for
 pushbuffer-space fences, and is already more than the shim claimed. Flips,
 clears, visibility reports and render to texture still drain the queue.
 The hub renders correctly (Blinx, the reflection, the overlay text).
+
+## 2026-10-12 (later): raster pipeline, pixel path, and what did not help
+
+Committed (xboxrecomp):
+- `c59c2cf`: the executor walks the ring GET → PUT through the wrap JUMP. The
+  old version guessed the ring's end from the highest PUT seen, and could skip
+  commands (fences included).
+- `e073a9d`: raster batches pipelined per band (a 4-batch ring), and raster
+  threads up to cores − 4. A raster worker's idle time went from 44% to 32%.
+  In-run A/B, 28 vs 16 workers: 18.7 vs 16.5 fps.
+- `9b59a7a`: a DXT block is decoded in one pass (bit-identical, 0 / 4.8 M
+  texels differ).
+- `63b1296`: combiner results no register keeps are skipped (bit-identical,
+  0 / 400 k pixels differ). One program is 67% of hub pixels. Combiner share
+  of a worker: 16% → 11%.
+
+The hub often sits at exactly 20.0 fps = 60/3. The title is vblank-locked,
+so a frame has to get under 33.3 ms to reach 30, and smaller gains don't
+show.
+
+Tried and not committed:
+- **Early kick ack** (acking 0x100410 mid-walk, to overlap the title with
+  the executor). It deadlocks. At the stall all fences are complete
+  (gpu = cpu − 2) and the flush bit is clear, but D3D's write pointer is past
+  PUT, and the main thread waits in `sub_002E0D00` (called from frame pacing,
+  `0x00060412`) on a fence that was never kicked. D3D's lazy kickoff seems to
+  depend on GET/ack timing. A fix would need its kick heuristics
+  reverse-engineered.
+- **Render-to-texture barrier batches** instead of draining the queue: correct
+  (the reflection renders), but no measurable gain.
+- **Pause-spin instead of `Sleep(0)`** in the NV2A loop: no measurable gain.
+- **Skipping the visibility-report drains**: no gain.
+
+Measurement caveat: with the other workers' instances running, the hub swings
+15–28 fps even with no input. In-run A/Bs under ~15% are noise unless the
+machine is quiet.
