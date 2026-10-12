@@ -323,6 +323,13 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     `RECOMP_EARLY_ACK=1` (default off) acks D3D's kick mid-walk. It no
     longer deadlocks, but gives no fps gain yet. The model is in
     `notes/rendering-log.md`.
+  - **Executor parallelism (2026-10-12).** Geometry (vertex programs, clip,
+    set-up) runs on the raster pool per batch (xboxrecomp `3e4d724`;
+    `RECOMP_SERIAL_XF=1` keeps it on the executor). Register-combiner draws
+    shade four pixels at once (`a622dca`; `RECOMP_SCALAR_PIXELS=1` is the
+    scalar reference). `RECOMP_PIXEL_CHECK=1` draws every span both ways and
+    reports differences: slow, for testing only. In-play hub camera:
+    ~19 → ~27 fps, most frames at the title's 2-vblank (30 fps) cadence.
   - **Heap exhaustion: fixed** with `xbox_SetMapSize(128 MB)` in `main.c`
     (78 MB heap; the title still sees 64 MB of RAM).
   - **Seeds added (2026-10-10):** `0x001B8BF0` (IPK loader thread), and

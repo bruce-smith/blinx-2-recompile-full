@@ -575,3 +575,35 @@ title is always near the executor and spins instead.
   work serialised by real RTT dependencies (reflection, bloom). The lever
   now is cheaper pixels: shading 2x2 quads / 4 pixels at once with SIMD
   (combiners, span stepping, sampling).
+
+## 2026-10-12 (night): four-lane pixel shading
+
+xboxrecomp `a622dca`: `xf_rows_span4` + `nv2a_rc_eval_prep4`.
+- Combiner draws shade four pixels at a time (SSE). They use the scalar
+  code's operations in the scalar order.
+- Texture fetch, alpha test, pack and blend run per lane through the scalar
+  functions.
+- Draws that sample their own colour surface stay scalar (write-order
+  dependent).
+
+Verification:
+- Combiner unit diff: 0 / 1.28 M pixels, NaN identity aside, which packs
+  identically.
+- `RECOMP_PIXEL_CHECK=1` in game: 0 deterministic mismatches in 204 M spans.
+  3231 spans are unstable, all during the logo movie, whose YUY2 texture
+  the decoder rewrites mid-span.
+
+In-play hub camera, in-run A/B: **26–27.5 fps vs ~21 scalar**. The
+`RECOMP_TIMING_TRACE` peak count is now mostly 2 (25–29 frames/s), against 3
+before.
+
+Raster worker breakdown, now:
+- idle ~57%;
+- combiners 11% (was ~20%);
+- span 6% (was ~14%);
+- `sample_tex` + `rc_texel` ~11%;
+- blend + `put_pixel` ~6%.
+
+The scalar per-lane parts (sampling, blend) are now the largest shading cost.
+AVX2/8-wide is not done: with workers half idle, wider lanes buy little until
+the per-lane work shrinks.
