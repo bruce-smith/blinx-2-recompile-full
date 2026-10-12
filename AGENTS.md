@@ -193,6 +193,11 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   `006bf0e`). First-person pitch needs a gen made with xboxrecomp `aa5e481`+
   (`movsx` from bp/sp sign-extends; 9 `SX16(LO16(ebp))` lines in
   recomp_0005/0013/0016).
+  A key already held when the window gets focus is not a press until it is
+  released (xboxrecomp `0d4086b`). Windows sends the newly focused window that
+  key's auto-repeats, so Enter still down from launching the exe read as
+  Start/A and skipped the intro movies. The first 24 raw host-pad changes
+  are logged as `[HOSTPAD]` (`4a64408`).
   Window: opens at 2x, resizable with aspect kept; Alt+Enter or F11 =
   fullscreen, F9 = nearest/linear (`RECOMP_FB_SCALE`, `RECOMP_FB_FILTER`).
 - The right-stick pitch fix (`aa5e481`, lifter `movsx` from bp/sp) needs a
@@ -358,6 +363,21 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     scalar reference). `RECOMP_PIXEL_CHECK=1` draws every span both ways and
     reports differences: slow, for testing only. In-play hub camera:
     ~19 → ~27 fps, most frames at the title's 2-vblank (30 fps) cadence.
+    On an otherwise idle machine the in-play hub holds 30–31 frames/s. The
+    heaviest view so far is the hub's high overview camera behind the first
+    CHALLENGE prompt, with the reflective floor filling the frame.
+  - **Rendering glitches, resolved.** The human's random yellow/black
+    one-frame glitches were methods lost at pushbuffer wraps (`c59c2cf`).
+    Later "reflection + HUD gone for 1–3 frames" sightings were a capture
+    artifact: mid-frame report dumps overwrote flip dumps (`9ef0a2e`).
+    `RECOMP_FRAME_SUMMARY=1|2` separates "the title submitted different work"
+    from "the same work rendered differently".
+  - **Logging from the NV2A thread is expensive.** stderr is one locked
+    stream shared with every guest thread. The per-kick and per-flip lines
+    cost ~14% of the executor until they were gated on
+    `RECOMP_NV2A_TRACE` (`c0a6afa`, `62d8aa6`). A 4-min hub log went from
+    ~100–170k lines to ~8k. Keep anything per-kick, per-draw or per-pixel
+    behind an env switch.
   - **Heap exhaustion: fixed** with `xbox_SetMapSize(128 MB)` in `main.c`
     (78 MB heap; the title still sees 64 MB of RAM).
   - **Seeds added (2026-10-10):** `0x001B8BF0` (IPK loader thread), and
