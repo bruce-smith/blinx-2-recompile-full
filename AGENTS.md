@@ -303,9 +303,11 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
 
 - Retail NA XBE, title ID `0x4D530065`, LTCG build (`c:\B\Final - LTCG\...`),
   base `0x00010000`, 73 sections, 121 kernel imports.
-- **Current count:** 10,549 identified functions (2026-10-10, full
-  extra-section list), with 204 unresolved stubs left, ~3.0 M lines in 43
-  files. The earlier "23,753" figure did not match the disasm summary, which
+- **Current count (2026-10-12, blinx2-recomp `c129123` seeds):** 10,565
+  functions through abi_analysis, 196 unresolved stubs, 45 gen `.c` files.
+  `0x000EF540`, the stage 01-01 load-completion callback, is seeded; without
+  it the mission summary never appears. On 2026-10-10 the count was 10,549
+  functions and 204 stubs. The earlier "23,753" figure did not match the disasm summary, which
   had reported 8,688 for the DSOUND-only run. The 2026-10 data-ptr fix removed
   14,549 false functions. `--text-only` is correct for this title: the
   model-blob sections (MDL*/M*/G*) are data.
