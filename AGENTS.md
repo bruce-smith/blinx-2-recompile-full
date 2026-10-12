@@ -217,6 +217,14 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   `RECOMP_WATCHDOG_SECS=<n>` hang watchdog (dumps guest esp, 6 regs, ICALL
   trace, NV2A pointers, and 400 dwords of guest stack, then `_exit(3)`),
   `RECOMP_UNIMPL_TRAP=1` stop at the first unimplemented instruction.
+  `RECOMP_TITLE_KEVENTS` defaults to 1 (`=0` opts out; blinx2-recomp
+  `13018e3`). D3D's BlockUntilVerticalBlank (`sub_002E0DB0`) waits on a
+  title-built KEVENT at device+0x1DBC. Without it that wait failed at once,
+  so CRI ADXM's vsync thread spun ~80k/s instead of 60. Sofdec times
+  video-only movies by it, so the title-screen crystal loops
+  (`title_movie_1a/2a.sfd`, 6 s) ran ~17x fast and burned a core.
+  Diagnostics: `RECOMP_TIMING_TRACE=1`; `RECOMP_XINPUT_TRACE=1` also logs
+  stick floats (`048bd54`).
 
 ## Tests
 
