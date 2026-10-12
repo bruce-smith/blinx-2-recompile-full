@@ -525,6 +525,27 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     env-gated), `RECOMP_SAMPLE_MS=<n>` (main-thread host-RIP sampler in
     `main.c`). The game now links with `/DEBUG`, so `[CRASH]` dumps print a
     named native stack plus host thread id and `g_fs_base`.
+- **Collision octree pools are fixed and unchecked in the game.** The
+  builder (`sub_001642A0`) uses 8000 triangles at `0xC21EA8`, 2000 nodes at
+  `0xCAE8A8` and 60000 links at `0xBACB98`, back to back with no bounds
+  check (node 2000 *is* the node counter `0xCC9E30`). Stage 01-01 already
+  uses 58% of the nodes and 77% of the links with valid input. An overflow
+  corrupts the counter, and `sub_001645A0` then recurses into garbage
+  (one-off crash, 2026-10-12). `recomp_manual.c` now guards the split
+  (blinx2-recomp `0e5cff1`, P5): a node whose children or links would not
+  fit stays a leaf, logged once as `[OCTREE] pool full`. This needs
+  `--exclude-manual` (emits `sub_001645A0_gen`). `RECOMP_OCTREE_WATCH=1`
+  prints each build's peaks. The real Xbox presumably fits the same data;
+  the SAT test's float precision follows D3D's PC=24 as on hardware.
+- **Stage 01-01 freeze (fps 0, sound repeating, around the time
+  controls): fixed** (xboxrecomp `9d895c0`, audio worker). The DPC that
+  DSOUND's APU ISR queues used to run on the timer thread's next tick, up to
+  10 ms later. If the game restarted a voice in that gap, the ISR put it on
+  the retire list (`ctx+0x4A0`) twice, linked to itself. The DPC
+  `0x334BDF` / `sub_003346BE` then looped forever. `apu_deliver_irq` now
+  runs that DPC right after the ISR. `RECOMP_APU_DPC_INLINE=0` restores the
+  old behaviour. Diagnostics: `RECOMP_APU_TRAP_TRACE`, `[DPCSPIN]`, the
+  `[DPC]` host stack on a dispatch-lock timeout, `[DSAPU]`/`[DSTIMER]` dumps.
 - The `blinx2_0NN.rec` scan (000–359, each opened twice) is **not** a
   blocker, but it is slow: the sampler shows the main thread ~100% in
   `ZwWriteFile` under stderr `fprintf`, so its 4–15 min length tracks how fast
