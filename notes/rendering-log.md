@@ -379,3 +379,18 @@ Regression run, all OK:
 
 Screens: `checkpoint_png/attract_blinx_visible_fixed.png` and
 `hub_blinx_visible_fixed.png`.
+
+## 2026-10-12: vertex programs four at a time
+
+With the characters back, the vertex-program interpreter was ~35% of the
+executor, and the executor's pace (it acks D3D's kick) is the frame rate.
+
+- A post-transform cache got 0 hits (Blinx draws strips).
+- Fetching only the inputs a program reads saved nothing (fetch is 1.6%).
+- `nv2a_vsh_run4` (xboxrecomp `c898127`): SSE, four vertices in lockstep,
+  bit-identical to the scalar interpreter (2,000 random programs, 0
+  differences). Vertex share ~35% → ~13%. A hub run reached 17.3 fps, but
+  its end scene differed from the baseline's, so the figure is only
+  indicative.
+- Render-to-texture drains now count only sampled stages (`5c103b5`):
+  -20% drains.
