@@ -184,6 +184,9 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
 - The exe makes its own folder the working directory, so `xbox_kernel.log`
   lands next to it. Without a console, stderr goes to `blinx2_recomp.log`
   there. An unhandled crash shows a MessageBox.
+- **Culling** judges winding against the viewport's y direction (xboxrecomp,
+  2026-10-11). Blinx 2 renders stage geometry into 256x256 targets through a
+  y-up viewport, and screen-only winding tinted the attract stage magenta.
 - **Known issue:** with USB on, about 1 run in 8 freezes (no flips, music may
   continue). The guest is stuck in XPP's USB pending-transfer list
   (`sub_0036E7A5`, a list cycle). See `notes/rendering-log.md`; not fixed
