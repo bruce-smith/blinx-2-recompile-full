@@ -178,6 +178,13 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
 - The exe makes its own folder the working directory, so `xbox_kernel.log`
   lands next to it. Without a console, stderr goes to `blinx2_recomp.log`
   there. An unhandled crash shows a MessageBox.
+- **Known issue:** with USB on, about 1 run in 8 freezes (no flips, music may
+  continue). The guest is stuck in XPP's USB pending-transfer list
+  (`sub_0036E7A5`, a list cycle). See `notes/rendering-log.md`; not fixed
+  yet. Scripted runs use `RECOMP_WATCHDOG_STALL=15` to catch it.
+- **Never kill `blinx_2_recomp.exe` by image name**: the human may be
+  playing. Kill only the PID you started. If their instance blocks a
+  relink, build the `xbox_kernel` target alone to check that it compiles.
 - **Agents / scripted runs: set `RECOMP_HEADLESS=1`.** That means no window,
   no dialog, and none of the four defaults. Set
   `RECOMP_PB_EXEC`/`RECOMP_USB`/… explicitly, and redirect stderr. The

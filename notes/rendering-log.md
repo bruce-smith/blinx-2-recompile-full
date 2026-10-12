@@ -262,3 +262,36 @@ different, cheaper or costlier scenes. A/B inside one run.
 sampler (fps → 0, PUT = GET). So it is a real, intermittent hang, not
 caused by the GPU sampler: 3 of ~25 runs. Runs with
 `RECOMP_WATCHDOG_STALL=15` have not hit it yet.
+
+## 2026-10-11: the intermittent no-flip hang is in XPP's USB stack
+
+Caught twice by `RECOMP_WATCHDOG_STALL=15` (rV1, rG1); it happens in ~1 run
+in 8, always with `RECOMP_USB=1`. Note that USB is now on by default for
+double-click.
+
+- **Where:** the guest main thread loops forever in `sub_0036E7A5`, called
+  from XInput (`sub_0036827F`, from game code 0x0021C4D4). Return addresses:
+  0036E7E6 0036E897 0036E91C 0036D037 0036B107 0036840F.
+- **What the loop does:** `sub_0036E7A5` pops nodes from the host
+  controller's pending list `[hcd+0x41C]` (`next = [node+0x24]`) while a
+  16-bit bandwidth budget at 0xF2E0E2 allows (`sub_0036E35D`), and completes
+  each through `sub_0036E407`. An endless walk means the list has a cycle.
+  The ICALL trace shows RtlEnter/LeaveCriticalSection (kernel slots 30/29)
+  each round.
+- **Suspected cause:** concurrent insertion and removal between the
+  game-thread XInput path and the OHCI controller thread's ISR/DPC (the ISR
+  runs on the controller thread; DPCs run inline from
+  `kernel_run_dpc`/`kernel_timer_thread`).
+- **Tried, not enough:** an interrupt gate in `kernel_hal.c`. Raised threads
+  hold an SRW lock shared and ISR/DPC delivery holds it exclusive, closing
+  the check-then-act in `xbox_IrqlBlocksInterrupts`. It still hung (rG1),
+  so it was reverted. The game-side path evidently does not raise IRQL
+  around the list, or the racing writer is elsewhere: the timer DPC thread,
+  or the 84 `cli`/`sti`/`pushfd` sites the recompiler emits as RECOMP_UNIMPL
+  no-ops.
+- **Next:**
+  - find what serialises `[hcd+0x41C]` on the console: disassemble the
+    inserting side, or watch-point the list head and log the thread on each
+    write;
+  - check whether XPP brackets it with `cli`/`sti` (a no-op today), which
+    would call for a real interrupt-disable in the runtime.
