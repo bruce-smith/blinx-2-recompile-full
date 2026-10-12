@@ -225,6 +225,19 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   (`title_movie_1a/2a.sfd`, 6 s) ran ~17x fast and burned a core.
   Diagnostics: `RECOMP_TIMING_TRACE=1`; `RECOMP_XINPUT_TRACE=1` also logs
   stick floats (`048bd54`).
+- **Sound is on by default** in the playable exe (blinx2-recomp `c7715e3`,
+  xboxrecomp `de4de43..0760b18`). The APU's VP is emulated and output through
+  XAudio2. GP DSP effects/reverb are still stubbed, and the DSP doorbell
+  watcher in `main.c` is still needed. `RECOMP_AUDIO=0` opts out; headless
+  runs stay silent unless `RECOMP_AUDIO=1`. `RECOMP_APU_WAV=<file>` dumps the
+  device output, and `RECOMP_APU_STATS=1` logs voices. Root causes fixed:
+  - the APU monitor zeroed the VP mix;
+  - heap "physical" addresses aliased the contiguous arena (now
+    `XBOX_PHYS_RAM_TAG`; `RECOMP_PHYS_RAM_TAG=0` opts out);
+  - pitch was ignored (linear resampler now);
+  - a DSOUND ISR crash in `sub_00335C18` (trapped-FE PIO FIFO).
+
+  Details: `E:\blinx2_wt\audio\notes-audio.md`.
 
 ## Tests
 
