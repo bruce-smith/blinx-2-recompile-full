@@ -295,3 +295,23 @@ double-click.
     write;
   - check whether XPP brackets it with `cli`/`sti` (a no-op today), which
     would call for a real interrupt-disable in the runtime.
+
+### USB hang, continued (2026-10-11 evening)
+
+- The xboxrecomp `ohci.c` interrupt-status race is fixed (atomic set/clear),
+  but **the hang remains**: 1 of 4 ten-minute runs, and that one froze at
+  t ≈ 34 s during the title Start presses.
+- **Full stack at the hang**, oldest first: game 0x0021C4D4 → XInput
+  `sub_0036827F` → … → `sub_0036E7A5` (pending-list drain) →
+  `sub_0036E407` (complete a transfer) → **game main-loop code**
+  (0x000633AB in `sub_00062FB0`, 0x00064969 in `sub_00064850`), which spins
+  in Enter/LeaveCriticalSection + NtYieldExecution.
+- A USB completion has no business calling the main loop. Most likely the
+  completion called through a stale/corrupted callback pointer in a reused
+  XInput request object (use-after-free or double submit), and re-entered
+  the frame loop, which then waits forever on itself.
+- Next: break on `sub_0036E407`'s indirect call and log the request object
+  and callback target. Compare XInputGetState's request reuse with the
+  model's completion timing.
+- **Ownership:** this now belongs to the input/timing worker (`src/usb` is
+  theirs).
