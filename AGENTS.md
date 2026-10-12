@@ -230,7 +230,13 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   XAudio2. GP DSP effects/reverb are still stubbed, and the DSP doorbell
   watcher in `main.c` is still needed. `RECOMP_AUDIO=0` opts out; headless
   runs stay silent unless `RECOMP_AUDIO=1`. `RECOMP_APU_WAV=<file>` dumps the
-  device output, and `RECOMP_APU_STATS=1` logs voices. Root causes fixed:
+  device output, and `RECOMP_APU_STATS=1` logs voices. Speaker mixbins
+  are folded down to stereo, and reverb/FX sends are not added dry
+  (`a329ee8`). `RECOMP_APU_MIXDOWN_ALL=1` gives the old sum of all bins, `=0`
+  bins 0/1 only. Blinx uses only bins 0/1 and sends nothing to the
+  reverb/FX bins in any observed scene, so the missing GP reverb is
+  inaudible. Sofdec A/V sync is within one frame (median video +19 ms) with
+  no drift. Root causes fixed:
   - the APU monitor zeroed the VP mix;
   - heap "physical" addresses aliased the contiguous arena (now
     `XBOX_PHYS_RAM_TAG`; `RECOMP_PHYS_RAM_TAG=0` opts out);
