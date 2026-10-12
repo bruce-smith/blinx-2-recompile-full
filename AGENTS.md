@@ -391,16 +391,20 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     `RECOMP_NV2A_TRACE` (`c0a6afa`, `62d8aa6`). A 4-min hub log went from
     ~100–170k lines to ~8k. Keep anything per-kick, per-draw or per-pixel
     behind an env switch.
-  - **`RECOMP_ASYNC_SYNC=1` (opt-in, xboxrecomp `4c40733`).** The flip
+  - **Asynchronous sync points: default since xboxrecomp `e2ceab5`**
+    (`4c40733`; `RECOMP_ASYNC_SYNC=0` restores the drains). The flip
     becomes the only raster drain:
     - render-to-texture hazards become barrier batches;
     - colour and depth clears become ordered band jobs;
     - visibility reports are written when their batches finish (z-pass is
       counted per report epoch).
 
-    It is aimed at the intermittent ~22 fps state around the hub's first
-    CHALLENGE prompt, where the executor sat in drains. It is not yet
-    measured there; where frames are already at 30 it changes nothing.
+    Stage 01-01, toggled within one run: 28 vs 25 fps median. Its frames
+    have ~3,700 draws and ~30 ms of drains in the old mode. The hub at the
+    30 fps cap is unchanged. Two stalls on `0804d28` (P8) went away with
+    the geometry-claim race fix `1d4f335` and the barrier carry `38db67f`:
+    15 soak runs since, none stalled. With `RECOMP_WATCHDOG_STALL` set, a
+    stall dumps the executor/worker stacks and the pool state (`da6c7a7`).
     `47a38a2` (P8) times the drains by call site.
   - **Heap exhaustion: fixed** with `xbox_SetMapSize(128 MB)` in `main.c`
     (78 MB heap; the title still sees 64 MB of RAM).
