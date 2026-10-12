@@ -463,8 +463,9 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
       screen. Use `RECOMP_PAD_LIVE=<file>` and append `start:500` /
       `a:600`, because 200 ms presses can fall between 4 fps polls.
     - **Pipeline:** `--extra-sections` as listed above. Seeds
-      (`blinx2-recomp/seeds/seed_functions.json`, 42 entries) cover the XPP
-      USB callbacks and the opening-movie, attract and hub ICALL targets. Any
+      (`blinx2-recomp/seeds/seed_functions.json`, 43 entries) cover the XPP
+      USB callbacks, the opening-movie, attract and hub ICALL targets, and
+      `0x000EF540` (the stage 01-01 mission-load completion callback). Any
       new `[ICALL] Failed to resolve` that is a gap-start gets seeded, and
       the pipeline is rerun.
     - A save (`game_files/UDATA/4d530065/13C91777168C/`) is created once the
