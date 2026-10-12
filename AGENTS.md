@@ -379,6 +379,12 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     artifact: mid-frame report dumps overwrote flip dumps (`9ef0a2e`).
     `RECOMP_FRAME_SUMMARY=1|2` separates "the title submitted different work"
     from "the same work rendered differently".
+    The black streaks in the first mission and the floor band in the opening
+    tutorial were float edge functions. Near-plane clipping leaves vertices
+    ~1e7 px off screen, so pixels on a shared edge fell inside neither
+    triangle. Edges are now set up in double, rebased to the triangle's first
+    pixel, and the neighbour's edge is the exact negation (`df9a07d`, P8;
+    both span loops evaluate them in the same order).
   - **Logging from the NV2A thread is expensive.** stderr is one locked
     stream shared with every guest thread. The per-kick and per-flip lines
     cost ~14% of the executor until they were gated on
