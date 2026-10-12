@@ -183,7 +183,12 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   is the human's: their logs and their save are there. Test from your own
   build tree (or another folder), with `RECOMP_HEADLESS=1`, and pass
   `RECOMP_SAVE_DIR=<your dir>` if the run must not touch the shared
-  saves/cache.
+  saves/cache. The human's save slots live in `game_files\UDATA` (XAPI's
+  E:\UDATA on partition 1), not under `%LOCALAPPDATA%\xboxrecomp`. Since
+  xboxrecomp `67c7518`, an explicit `RECOMP_SAVE_DIR` takes `UDATA`/`TDATA`
+  as well (`<dir>\UDATA`). Older builds still read and write the shared
+  slots. To test with the human's progress, copy `%LOCALAPPDATA%\xboxrecomp`
+  plus `game_files\UDATA` into your dir. Never write to theirs.
 
   Keyboard: arrows = d-pad, Enter = Start, Z/X/A/S = A/B/X/Y,
   Q/E = White/Black, 1/3 = LT/RT, Shift/Ctrl = L3/R3 (thumb clicks),
