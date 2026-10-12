@@ -95,6 +95,10 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
 - **`--exclude-manual` is required.** `recomp_manual.c` wraps
   `sub_002F89C3` (the D3DX JPEG guard). The recomp must emit the generated
   body as `sub_002F89C3_gen`, or the link fails / the guard is lost.
+  Since blinx2-recomp `7b65d06` it also wraps `sub_002EAA50`, D3D's
+  PGRAPH interrupt handler. The wrapper emulates the write-1-to-clear ack.
+  A gen made before that commit fails to link (duplicate `sub_002EAA50`):
+  rerun the recomp step.
 - Skipping `abi_analysis` still builds, but every generated signature falls
   back to a guess (cdecl / 0 params).
 - **`--extra-sections` is load-bearing, not optional.** `--text-only` skips
@@ -309,6 +313,16 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     `RECOMP_GPU_IDLE_SHIM=1`, the old "GPU always idle" shim reports every
     fence complete instead (`[[dev+0x30]] = [dev+0x2C] - 2`, 1 ms poll).
     `RECOMP_GPU_IDLE_SHIM=0` disables both.
+    Since xboxrecomp `5a733df` the executor also handles two more of D3D's
+    signals:
+    - **GPU position.** D3D reads it from PGRAPH `0x400B10`, loaded by
+      subch 5 method `0x310` before each fence, not from DMA GET.
+    - **PGRAPH NOTIFY.** It is raised for `NO_OPERATION` with a parameter;
+      D3D's fence wait sleeps on one when the GPU is far behind.
+
+    `RECOMP_EARLY_ACK=1` (default off) acks D3D's kick mid-walk. It no
+    longer deadlocks, but gives no fps gain yet. The model is in
+    `notes/rendering-log.md`.
   - **Heap exhaustion: fixed** with `xbox_SetMapSize(128 MB)` in `main.c`
     (78 MB heap; the title still sees 64 MB of RAM).
   - **Seeds added (2026-10-10):** `0x001B8BF0` (IPK loader thread), and
