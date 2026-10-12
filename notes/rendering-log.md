@@ -552,3 +552,26 @@ title is always near the executor and spins instead.
 - So the limit is the executor's serial work per frame in heavy views:
   vertex programs (~18%), the walk and draw set-up. Next lever: transform
   vertices in parallel (workers) or compile vertex programs (JIT).
+
+## 2026-10-12 (night): geometry on the raster pool
+
+- xboxrecomp `2d40cd6`: re-entrant `nv2a_vsh_transform` (the interface
+  P7 optimises).
+- `f703470`: set-up takes a per-draw `GeoCtx`.
+- `3e4d724`: each draw's geometry is a job in the raster batch (`GeoJob`).
+  Workers transform, assemble, clip and set up into reserved slots, in
+  order. `RECOMP_SERIAL_XF=1` falls back.
+
+  In-play camera, in-run A/B: **20.6 vs 18.8 fps** (+10%). Per-draw
+  parallelism alone did nothing (~400 draws/frame averaging ~58 vertices).
+- Executor now: render-to-texture checks 23%, raster drains 45% (mostly the
+  executor drawing alongside the workers), ring-full waits 16%, idle 24%.
+  Workers ~67% busy (combiners ~20%, span ~14%, sampling ~9%).
+- Tried on top, no gain (not committed):
+  - RTT barrier batches: slower (18 vs 20.7). Blocked workers spin, and the
+    ring fills behind barriers.
+  - A ring 8 deep instead of 4: same.
+- Frames are still mostly 3 vblanks (peak count 3). What remains is raster
+  work serialised by real RTT dependencies (reflection, bloom). The lever
+  now is cheaper pixels: shading 2x2 quads / 4 pixels at once with SIMD
+  (combiners, span stepping, sampling).
