@@ -268,10 +268,17 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     `--extra-sections` list (an unresolved D3DX stub leaked guest stack).
     **XBE section cap: fixed** (all 73 sections load). **stderr: buffered**
     (it was the boot's main cost).
-  - **D3D GPU wait: worked around** by a "GPU always idle" shim in
-    `src/main.c`. It reports every D3D fence complete
-    (`[[dev+0x30]] = [dev+0x2C] - 2`, device at `0x2F1FB8`) and echoes NV2A reg
-    `0x400B10`. Nothing is drawn. `RECOMP_GPU_IDLE_SHIM=0` disables it.
+  - **D3D fences: executed (2026-10-12).** D3D's fences are semaphore
+    releases in the pushbuffer (`0x1D6C` offset, `0x1D70` value), written to
+    `[[0x2F1FB8]+0x30]`; the low bits are mirrored into NV2A reg `0x400B10`.
+    With `RECOMP_PB_EXEC` (the default) the executor writes them as it reaches
+    them (xboxrecomp `704daa8`, registered in `main.c` via
+    `xbox_Nv2aSemaphoreAt`). Here "done" means the commands have been read.
+    `RECOMP_FENCE_STRICT=1` also waits for the queued pixels (slower: 12.4 vs
+    17 fps in the hub). Without the executor (`RECOMP_HEADLESS`), or with
+    `RECOMP_GPU_IDLE_SHIM=1`, the old "GPU always idle" shim reports every
+    fence complete instead (`[[dev+0x30]] = [dev+0x2C] - 2`, 1 ms poll).
+    `RECOMP_GPU_IDLE_SHIM=0` disables both.
   - **Heap exhaustion: fixed** with `xbox_SetMapSize(128 MB)` in `main.c`
     (78 MB heap; the title still sees 64 MB of RAM).
   - **Seeds added (2026-10-10):** `0x001B8BF0` (IPK loader thread), and
@@ -323,7 +330,9 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
       15.6 ms.
     - **Rendering:** without `RECOMP_PB_EXEC` nothing is drawn (GPU-idle
       shim). With it, the title, the attract stage and the hub render
-      textured in the FB window and dumps. See `notes/rendering-options.md`
+      textured in the FB window and dumps. With the executor the hub runs
+      at ~17 fps (2026-10-12, executed fences); the target is 30. See
+      `notes/rendering-options.md`
       and the running log `notes/rendering-log.md`. The hub floor's
       stair-step bands are fixed: the floor reflection renders into
       *swizzled* surfaces, which the executor now writes swizzled

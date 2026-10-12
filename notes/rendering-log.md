@@ -405,3 +405,29 @@ to 12.1 fps on the same pad script. The NV2A thread is now ~27% idle
 (`Sleep(0)` polling for PUT). Of the busy time, the top costs are the
 combiners (`nv2a_rc_eval_prep` ~12%), texture sampling and the vertex
 programs.
+
+## 2026-10-12: D3D fences executed (12.1 -> 17.0 fps)
+
+A main-thread profile with the executor on: 65% in `sub_002E7F30` (the
+kick: it spins on the flush bit until the executor's loop acks it) and 21%
+in `sub_002E8110`, D3D's fence wait. The NV2A thread was 27% idle at the
+same time. The fence wait was the GPU-idle shim's `Sleep(1)` poll: a
+spinning shim alone gave 17.2 fps.
+
+D3D's fences are semaphore releases in the pushbuffer: `0x1D6C` = offset 0
+(set once), then `0x1D70` with the fence time, ~9 a frame. The executor now
+writes them to `[[0x2F1FB8]+0x30]` and mirrors bits 2–6 into `0x400B10`
+(xboxrecomp `704daa8`, blinx2-recomp `9eb4f27`; the shim no longer runs
+under PB_EXEC). Measured on the same pad script, in the hub:
+
+| fence released when | fps |
+|---|---|
+| shim, 1 ms poll (before) | 12.1 |
+| executor drains the raster queue, then releases | 11.6 |
+| raster batch done (`RECOMP_FENCE_STRICT=1`, no executor stall) | 12.4 |
+| executor reaches it (default) | 17.0 |
+
+The default treats "commands read" as done. That is enough for
+pushbuffer-space fences, and is already more than the shim claimed. Flips,
+clears, visibility reports and render to texture still drain the queue.
+The hub renders correctly (Blinx, the reflection, the overlay text).
