@@ -607,3 +607,16 @@ Raster worker breakdown, now:
 The scalar per-lane parts (sampling, blend) are now the largest shading cost.
 AVX2/8-wide is not done: with workers half idle, wider lanes buy little until
 the per-lane work shrinks.
+
+## 2026-10-12 (late night): 30 fps in the hub
+
+With nothing else running, the current build (four-lane pixels, pool
+geometry) holds the in-play hub at **30–31 frames/s with
+`RECOMP_TIMING_TRACE` peak count 1**: every frame fits the title's
+2-vblank cadence. Runs that showed 26–27 had another worker's instance
+loading the machine. The last seconds of the default pad script (the next
+scene) still dip to ~21 frames/s.
+
+Tried and dropped: x-tiles (4 rows × 128 px) for raster work. Slower:
+every tile scans the batch's triangles. The patch is in this session's
+artifacts.
