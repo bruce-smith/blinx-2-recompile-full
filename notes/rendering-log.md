@@ -526,3 +526,29 @@ title is always near the executor and spins instead.
    wait for `0x400720` to return to 1 (the GPU stalls at a notify on hardware
    too).
 3. Soak with `RECOMP_EARLY_ACK=1` before it becomes the default.
+
+## 2026-10-12 (late): early ack works, but is not the limit
+
+- The early ack no longer deadlocks: D3D's GPU position (`0x400B10`) and
+  PGRAPH NOTIFY are emulated (xboxrecomp `5a733df`), and the PGRAPH handler
+  gets a write-1-to-clear wrapper (blinx2-recomp `7b65d06`, regen needed).
+  Another hidden deadlock is fixed along the way: the executor waiting for a
+  notify also has to keep acknowledging the vblank, because D3D's DPC handles
+  a pending vblank first and spins on PMC bit 24.
+- `RECOMP_EARLY_ACK=1` gains nothing (in-run A/B 16.3 vs 16.3).
+  - Acking while the executor is blocked on the raster as well is worse
+    (12 fps). The title runs ahead, then sleeps in the far-fence notify path,
+    and true vblanks drop to ~35/s.
+  - Default stays off.
+- RTT **barrier batches** (both hazard directions, P7's write-after-read
+  included): correct, no gain. Not committed; the patch is in this
+  session's artifacts.
+- Upper bound: skipping **every** raster drain except the flip gains ~3%.
+  Drains are not what holds frames above 33 ms.
+- `RECOMP_TIMING_TRACE`: the title targets 2 vblanks a frame
+  (`[0x3FD344]=2`) and gets 3 in heavy views. The rate depends on the view:
+  the overhead hub camera runs 28–29 fps, the in-play camera behind Blinx
+  16–20.
+- So the limit is the executor's serial work per frame in heavy views:
+  vertex programs (~18%), the walk and draw set-up. Next lever: transform
+  vertices in parallel (workers) or compile vertex programs (JIT).
