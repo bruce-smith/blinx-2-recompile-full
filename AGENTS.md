@@ -173,8 +173,14 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   - closing the window ends the process.
 
   Keyboard: arrows = d-pad, Enter = Start, Z/X/A/S = A/B/X/Y,
+  Q/E = White/Black, 1/3 = LT/RT, Shift/Ctrl = L3/R3 (thumb clicks),
   Backspace = Back, I/J/K/L = right stick, numpad 8/4/2/6 = left stick.
-  A host XInput pad also works.
+  A host XInput pad also works (host LB/RB = White/Black); the mapping is
+  printed to the log at start (xboxrecomp `006bf0e`).
+  Window: opens at 2x, resizable with aspect kept; Alt+Enter or F11 =
+  fullscreen, F9 = nearest/linear (`RECOMP_FB_SCALE`, `RECOMP_FB_FILTER`).
+- The right-stick pitch fix (`aa5e481`, lifter `movsx` from bp/sp) needs a
+  regen + full rebuild before it is in the exe.
 - The exe makes its own folder the working directory, so `xbox_kernel.log`
   lands next to it. Without a console, stderr goes to `blinx2_recomp.log`
   there. An unhandled crash shows a MessageBox.
