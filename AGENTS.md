@@ -184,6 +184,8 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
 - The exe makes its own folder the working directory, so `xbox_kernel.log`
   lands next to it. Without a console, stderr goes to `blinx2_recomp.log`
   there. An unhandled crash shows a MessageBox.
+- **Characters render again** (2026-10-11 regression, fixed by the memory
+  layout above). If actors ever vanish, try `RECOMP_CONTIG_LEGACY=1` first.
 - **Culling** judges winding against the viewport's y direction (xboxrecomp,
   2026-10-11). Blinx 2 renders stage geometry into 256x256 targets through a
   y-up viewport, and screen-only winding tinted the attract stage magenta.
@@ -357,10 +359,22 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     `R0_opening.sfd` → hub level `mgtu_ts`). It took three fixes:
     - `main.c` calls `xbox_OhciInit()` and routes the OHCI apertures through
       the VEH.
-    - By default the contiguous window is 128 MB, with the arena above the
-      image (`xbox_SetContigLayout`; opt-out `RECOMP_CONTIG_LEGACY=1`).
-      Before that the arena overlapped the image (top `0x0303AC20`), and OHCI
-      read its control ED out of the image.
+    - **Memory layout (2026-10-11, xboxrecomp `2009a1c`).**
+      - The contiguous window is 128 MB.
+      - The arena numbers from physical 0x1000 and fills below 64 MB first.
+        Above 64 MB is overflow only, logged as `[CONTIG] below-64 MB arena
+        full`.
+      - `MmGetPhysicalAddress` tags every non-window VA with
+        `XBOX_PHYS_RAM_TAG` (0x40000000), so an untagged number is always
+        arena memory.
+      - The NV2A executor, APU and OHCI strip the tag.
+      - Opt-out: `RECOMP_CONTIG_LEGACY=1` (64 MB, no tag).
+
+      History: an arena *above* the image (top `0x0303AC20`) left ~16 MB below
+      64 MB. The title needs ~26 MB, and data past 64 MB made it skip every
+      actor model (player, enemies) and the attract sky. The original
+      overlapping arena (no tag) made OHCI read its control ED out of the
+      image.
     - `xbox_ContiguousOwnsPhys` includes physical page 0. XAPI's USB stack
       carves its pool from that page (`0x80001000` minus what is left), so
       XInput handles and report buffers sit at `0x80000xxx`. Without this the

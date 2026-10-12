@@ -347,3 +347,35 @@ double-click.
   trace why it is skipped (a failed load, a flag, a time check).
 - Hub fps with the audio worker's APU-on default: ~10.6 (was ~13–15
   without audio).
+
+## 2026-10-11 (late): invisible actors were a memory-layout regression (fixed)
+
+The orchestrator found a 09:50 UTC frame with Blinx rendered, so this was a
+bisect. An env toggle on the current build found it:
+- `RECOMP_CONTIG_LEGACY=1` restored Blinx;
+- `RECOMP_PHYS_RAM_TAG=0`, `RECOMP_TITLE_KEVENTS=0` and `RECOMP_AUDIO=0`
+  did not.
+
+Cause: since c1136b0 the contiguous arena started above the 48 MB image,
+leaving ~16 MB below 64 MB. Blinx needs ~26 MB, and its actor data landed
+past 64 MB, a physical range no console has. The game then skips every
+actor model (player and enemies), and the attract sky too. A 64 MB-first
+allocator above the image was not enough. The console avoids the collision
+by mapping sections virtually (the title XeLoad/UnloadSections at run time).
+
+Fix (xboxrecomp `2009a1c`): the arena numbers from 0x1000 again, 64 MB
+first. `MmGetPhysicalAddress` tags all non-window VAs (`XBOX_PHYS_RAM_TAG`),
+so untagged numbers always mean arena memory, and the NV2A executor, APU
+and OHCI strip the tag. OHCI prefers the arena for untagged numbers when
+tagging is on.
+
+Regression run, all OK:
+- pad enumerates, Start leaves the title, right-stick pitch moves the
+  camera;
+- audio plays (59 audible voice reports from tagged RAM);
+- no arena exhaustion and no spill;
+- the attract demo shows Blinx, enemies and the sky, and hub gameplay shows
+  Blinx and his reflection.
+
+Screens: `checkpoint_png/attract_blinx_visible_fixed.png` and
+`hub_blinx_visible_fixed.png`.
