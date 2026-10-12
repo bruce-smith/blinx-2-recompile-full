@@ -467,3 +467,62 @@ Tried and not committed:
 Measurement caveat: with the other workers' instances running, the hub swings
 15–28 fps even with no input. In-run A/Bs under ~15% are noise unless the
 machine is quiet.
+
+## 2026-10-12: Blinx 2's D3D kickoff / fence-wait model (for the early ack)
+
+Device pointer at `[0x2F1FB8]`. `dev+0` is the pushbuffer write pointer,
+`+4` its end, `+0x2C` the CPU's next fence time, `[+0x30]` the address the
+GPU's last fence time is written to, `+0x40` the wrap epoch, and `+0x934`
+the NV2A register base.
+
+- **Kick, `sub_002E7F30`.** Sets PFB `0x100410` bit 16 and spins until it
+  clears (on hardware: write-combine flush, near-instant). Then it writes
+  PUT. With `[0x2F1B10]` set, it also loops on `sub_002E1C50`.
+- **InsertFence, `sub_002E8050`.** Writes 8 dwords at the write pointer:
+  1. `0x0004A310`, `((wptr << 3 | fence & 0x1F) << 2) | (epoch & 3)`:
+     subch 5 method 0x310, latched by PGRAPH into **0x400B10**;
+  2. `0x00041D70`, `fence`: the semaphore release that writes `[+0x30]`;
+  3. `0x00041D90`, 0, `0x00041D90`, 0: padding, patched later (see below).
+
+  The record (fence, address) is stored in a 64-entry table at `dev+0x64`.
+- **GPU position, `sub_002E7E00` / `sub_002E7E80`.** D3D reads the GPU's
+  progress from `0x400B10`, not from DMA GET:
+  `addr = ((reg >> 5) & 0x7FFFFFC) | 0x80000000`, with low bits giving the
+  epoch. `sub_002E7E80` also spins until `0x400B10` bits 2–6 equal
+  `[+0x30] << 2`. **Until today the executor never ran method 0x310**, so the
+  register held only the fence bits, and D3D always saw the GPU at address 0.
+- **Fence wait, `sub_002E8110(fence, flags)`.**
+  1. If the fence has passed, return.
+  2. Otherwise measure the pushbuffer distance from the GPU position to the
+     fence record (`sub_002E7B90`).
+  3. **Near (< 0x2000):** spin until `[+0x30]` passes.
+  4. **Far:** patch the record's padding to `WAIT_FOR_IDLE` (0x40110) +
+     `NO_OPERATION` param 5 (0x40100). Kick (`sub_002E7F00`), then wait on the
+     KEVENT at `dev+0x1DCC`. That event is set from the interrupt path below.
+- **Interrupt path.**
+  - D3D's ISR `sub_002EA2E0` (vector 3) checks `[dev..+0xA0]` and PMC
+    `INTR_EN` (`+0x140`), then queues a DPC.
+  - The DPC's PGRAPH handler `sub_002EAA50` reads:
+    - `0x400100`: INTR, where bit 0 is NOTIFY;
+    - `0x400108`: NSOURCE, which must be non-zero and must not include 0x40;
+    - `0x400704`: the trapped method, masked with `0x1FFC` (== 0x100);
+    - `0x400708`: the trapped data.
+
+    It then calls `sub_002EA7E0(data)`. Case 5 of that function is the
+    fence-wait wakeup.
+  - The handler brackets its work with `0x400720 = 0` … `= 1`.
+
+**Why the early ack deadlocked:** with it, the title gets far enough ahead
+of the executor to take the "far" branch of the fence wait. That branch waits
+for a NOP-notify interrupt the executor never raised. Without the early ack the
+title is always near the executor and spins instead.
+
+**Plan:**
+1. Execute subch 5 method 0x310 (done: `0x400B10` now holds the real
+   position).
+2. On `NO_OPERATION` with a non-zero parameter, raise the PGRAPH NOTIFY
+   interrupt the way the vblank is raised. Set INTR/NSOURCE/TRAPPED_ADDR/DATA
+   and PMC bit 12, have the timer thread call the ISR, and let the executor
+   wait for `0x400720` to return to 1 (the GPU stalls at a notify on hardware
+   too).
+3. Soak with `RECOMP_EARLY_ACK=1` before it becomes the default.
