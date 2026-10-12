@@ -174,7 +174,16 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   - `RECOMP_PB_EXEC`, `RECOMP_FB_WINDOW`, `RECOMP_USB` and
     `RECOMP_KEYBOARD` are on when unset;
   - the window is titled "Blinx 2 (recomp)" and opens in front;
-  - closing the window ends the process.
+  - closing the window ends the process;
+  - the previous runs' `blinx2_recomp.log` and `xbox_kernel.log` are kept as
+    `<name>.prev-<last write time>.log`, the newest five each (blinx2-recomp
+    `23a5d78`). A crash log survives the next launch.
+
+  **Agents: do not run tests in `blinx2-recomp\build\Release`.** That folder
+  is the human's: their logs and their save are there. Test from your own
+  build tree (or another folder), with `RECOMP_HEADLESS=1`, and pass
+  `RECOMP_SAVE_DIR=<your dir>` if the run must not touch the shared
+  saves/cache.
 
   Keyboard: arrows = d-pad, Enter = Start, Z/X/A/S = A/B/X/Y,
   Q/E = White/Black, 1/3 = LT/RT, Shift/Ctrl = L3/R3 (thumb clicks),
