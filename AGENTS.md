@@ -635,6 +635,23 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
       The design is in the header of `xboxrecomp src/kernel/sched.c`.
     - Off by default. It needs the `--yield-points`/`--loop-heads` regen
       above.
+    - **Since xboxrecomp `7bddab0`** (schedule format 2; format-1 files
+      still load), the APU and the NV2A thread are agents too. Exact replay
+      therefore covers `RECOMP_PB_EXEC` rendering and audio, and the headless
+      restriction above is gone. P5 checked one recording with PB, USB and
+      audio and four replays, identical at all 61 checkpoints.
+    - **Launchers** (blinx2-recomp folder, run `build\Release\blinx_2_recomp.exe`):
+      - `record_blinx2.bat` plays normally and writes
+        `build\Release\recordings\<yyyyMMdd-HHmmss>\` with `save\`,
+        `schedule.sched`, `input.rec` and `game.log`. It refuses an exe too
+        old to record or a second instance.
+      - `replay_blinx2.bat <folder> [window]` replays headless by default
+        (log in `<folder>\replay.log`) from a private save copy in
+        `%TEMP%\blinx2_replay_save`.
+    - **Divergence:** since `6343494`/`0dd12ab` a diverged replay stops with a
+      message instead of freezing. The human's rain recording
+      `20261013-140430` diverged in the hub (main thread asked for SYSTIME
+      where the recording had RDTSC/SLEEP/FILETIME). Reported to P5.
   - Outside a replay nothing changes: normal play at 30 fps in stage 01-01,
     vblank cadence unchanged (checked 2026-10-13).
 - **`[PERF]` line in every run** (blinx2-recomp `dfac277`, xboxrecomp
