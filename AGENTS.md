@@ -412,14 +412,19 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     reaches **30 vs 27 fps** median (in-run A/B): the 2-vblank cadence.
     `RECOMP_RQ_STATS=1` prints per-frame worker sleep (geometry, barrier,
     idle), executor wait and batch counts every 60 flips.
-    Water flashes: stage 01-01's sea flashed dark under async. Depth clears
-    drain by default (P7's `b306430`: 0/57 flashes, about 1 fps;
-    `RECOMP_ZCLEAR_JOB=1` restores the ordered job). The root cause is still
-    open. Ruled out: the empty-batch barrier drop (`920c064`) and
-    render-target tracking by raw address (`219c633`: the water samples its
-    reflections at `0x81364000`/`0x812E4000`, aliases of surfaces
-    `0x01364000`/`0x012E4000`, now compared physically). Both fixes are
-    kept. Since `6191c63` the raster ring is 16 batches.
+    Water flashes in stage 01-01 (dark one-frame blocks in the sea under
+    async): **fixed** by P7's `4810b1d`. D3D clears each reflection target
+    with the surface in *pitch* layout (format `0x08080128`) and then draws
+    it *swizzled* (`0x08080228`, same address). A swizzled texel's bytes lie
+    in other bands' pitch rows, so a band still clearing could wipe texels
+    another band had already drawn. A colour clear job is therefore now
+    followed by a barrier. The depth-clear drain (`b306430`) is reverted.
+    Lesson: band ordering assumes every pass over a surface uses the same
+    row layout, and a pitch/swizzle switch on the same memory breaks that.
+    Flash counter: `E:\blinx2_wt\gfx\tmp\seaflash.py`; P3's copy
+    `seaflash2.py` also reports how much sea was in view (a run that never
+    shows the sea counts 0 flashes meaninglessly). Since `6191c63` the
+    raster ring is 16 batches.
     Since `6f40ab2`, draws that sample their own target (Blinx 2's two
     full-screen colour passes) shade four lanes at a time: +2 fps in stage
     01-01 gameplay. `RECOMP_SELF_SAMPLE_SCALAR=1` restores the old path.
