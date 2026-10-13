@@ -247,9 +247,17 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   no dialog, and none of the four defaults. Set
   `RECOMP_PB_EXEC`/`RECOMP_USB`/… explicitly, and redirect stderr. The
   untracked `build\Release\run_p4.ps1` does this.
-- `blinx2-recomp/src/main.c` hardcodes `BLINX_2_XBE_PATH` /
-  `BLINX_2_DIR` as absolute `E:\Blinx2project\game_files` paths and the
-  entry point `0x0029A1DA`. Move game_files and you must edit main.c.
+- The game files directory (blinx2-recomp `9cd003e`) is resolved in this
+  order:
+  1. `RECOMP_GAME_DIR`;
+  2. `game_files\` next to the exe, if it holds `default.xbe`;
+  3. the CMake cache variable `BLINX2_GAME_DIR` (default
+     `E:/Blinx2project/game_files`).
+
+  The result is logged as `[BOOT] game files: ...`, and `record_blinx2.bat`
+  resolves it the same way. Saves (UDATA/TDATA) live there unless
+  `RECOMP_SAVE_DIR` moves them. `main.c` still hardcodes the entry point
+  `0x0029A1DA`. Setup from scratch is in `blinx2-recomp/README.md`.
 - Crash diagnostics come from the VEH handler in `main.c`: guest registers,
   guest-stack return addresses, and the last 16 ICALL targets. Function names
   (`sub_XXXXXXXX`) come from dbghelp + the PDB, but the default Release build
