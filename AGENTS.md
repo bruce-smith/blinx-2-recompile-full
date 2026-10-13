@@ -479,11 +479,12 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
       screen. Use `RECOMP_PAD_LIVE=<file>` and append `start:500` /
       `a:600`, because 200 ms presses can fall between 4 fps polls.
     - **Pipeline:** `--extra-sections` as listed above. Seeds
-      (`blinx2-recomp/seeds/seed_functions.json`, 46 entries) cover the XPP
+      (`blinx2-recomp/seeds/seed_functions.json`, 47 entries) cover the XPP
       USB callbacks, the opening-movie, attract and hub ICALL targets,
-      `0x000EF540` (the stage 01-01 mission-load completion callback), and
+      `0x000EF540` (the stage 01-01 mission-load completion callback),
       the post-results / pause-path callbacks `0x001AE1E0`, `0x001B04E0`,
-      `0x0016A870`. The pause menu stuck without the last one (`0420aa9`). Any
+      `0x0016A870` (the pause menu stuck without the last one, `0420aa9`),
+      and `0x000AEC20` (first Tom-Tom Gang mission, `407e389`). Any
       new `[ICALL] Failed to resolve` that is a gap-start gets seeded, and
       the pipeline is rerun.
     - A save (`game_files/UDATA/4d530065/13C91777168C/`) is created once the
@@ -549,6 +550,19 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   `--exclude-manual` (emits `sub_001645A0_gen`). `RECOMP_OCTREE_WATCH=1`
   prints each build's peaks. The real Xbox presumably fits the same data;
   the SAT test's float precision follows D3D's PC=24 as on hardware.
+- **`[PERF]` line in every run** (blinx2-recomp `dfac277`, xboxrecomp
+  `3910220`): one line a second with seconds since start, fps, D3D NV2A
+  interrupt calls, the peak vblank count against the title's target, the
+  executor's wait share, the workers' idle/blocked shares and the last
+  `.ipk/.sfd/.adx` opened. Grep a playtest log for `^\[PERF\]` to see where
+  it dropped. `RECOMP_PERF_LOG=0` turns it off.
+- **Music cut-outs: fixed** (xboxrecomp `6662782`, audio worker). While
+  DSOUND's idle-voice trap held the APU front end stopped, the frame thread
+  emitted silent frames, and the mix dropped to zero for 20–33 ms hundreds
+  of times a session. It now outputs nothing and only delivers the IRQ
+  (silence after 40 ms, logged). `RECOMP_APU_TRAP_HOLD=0` restores the old
+  behaviour. Diagnostics: `[XA2]` underrun, `RECOMP_APU_GAP_TRACE`
+  (`[APUGAP]`), `RECOMP_APU_LOOP_TRACE` (`[APULOOP]`).
 - **Stage 01-01 freeze (fps 0, sound repeating, around the time
   controls): fixed** (xboxrecomp `9d895c0`, audio worker). The DPC that
   DSOUND's APU ISR queues used to run on the timer thread's next tick, up to
