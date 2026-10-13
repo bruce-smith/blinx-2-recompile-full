@@ -275,6 +275,14 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   - `RECOMP_VK_PRESENT=1` presents the software frame through a swapchain.
   - `RECOMP_VK_COMPARE=1` runs both renderers and logs `[VKCMP]` diffs
     (`RECOMP_VK_COMPARE_DUMP=<prefix>` dumps them).
+  - `RECOMP_VK_CPU_VSH=1` runs vertex programs on the CPU (they run on the
+    GPU since `b975e5c`).
+  - `RECOMP_VK_FAST_FLOAT=1` drops NaN/inf preservation.
+  - `RECOMP_VK_STATS=1` prints draw, submit and pipeline counts every 60
+    frames.
+
+  With `005e12b`'s texture cache index, the Vulkan attract demo reaches
+  the 30 fps cap.
 
   The first configure FetchContent-downloads Vulkan-Headers, volk and
   glslang (pinned, SHA-256). `-DXBOXRECOMP_VULKAN=OFF` skips that. Its
