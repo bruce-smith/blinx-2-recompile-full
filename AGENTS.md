@@ -412,6 +412,14 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     reaches **30 vs 27 fps** median (in-run A/B): the 2-vblank cadence.
     `RECOMP_RQ_STATS=1` prints per-frame worker sleep (geometry, barrier,
     idle), executor wait and batch counts every 60 flips.
+    Water flashes: stage 01-01's sea flashed dark under async. Depth clears
+    drain by default (P7's `b306430`: 0/57 flashes, about 1 fps;
+    `RECOMP_ZCLEAR_JOB=1` restores the ordered job). The root cause is still
+    open. Ruled out: the empty-batch barrier drop (`920c064`) and
+    render-target tracking by raw address (`219c633`: the water samples its
+    reflections at `0x81364000`/`0x812E4000`, aliases of surfaces
+    `0x01364000`/`0x012E4000`, now compared physically). Both fixes are
+    kept. Since `6191c63` the raster ring is 16 batches.
   - **Heap exhaustion: fixed** with `xbox_SetMapSize(128 MB)` in `main.c`
     (78 MB heap; the title still sees 64 MB of RAM).
   - **Seeds added (2026-10-10):** `0x001B8BF0` (IPK loader thread), and
