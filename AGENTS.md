@@ -594,7 +594,13 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     THREADS,DEVICES}=0` turn parts off; `RECOMP_INPUT_RERECORD=<file>`
     re-records a replay as v2.
   - Diagnostics: `RECOMP_INPUT_HASH=<every>,<file>`,
-    `RECOMP_INPUT_SNAP=p1+p2+...`.
+    `RECOMP_INPUT_SNAP=p1+p2+...`; P5's scratch tools `hashdiff.py` and
+    `framediff.py` (`E:\blinx2_wt\input\scratch`) compare two runs.
+    `RECOMP_GUEST_LOCK=1` brings v2 replays closer without a schedule.
+    Details are in `E:\blinx2_wt\input\notes-input.md`, section
+    "Deterministic replays".
+  - Replay from a fresh copy of the save each time (reset `UDATA` too): a
+    replay that saves changes the start state of the next one.
   - Limits: menus, loading screens and stage entry reproduce. Guest-thread
     interleaving still drifts in gameplay (a press may land a few polls
     off). Replay against a private copy of the save the recording started
