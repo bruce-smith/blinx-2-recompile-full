@@ -667,7 +667,13 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
         (log in `<folder>\replay.log`) from a private save copy in
         `%TEMP%\blinx2_replay_save`.
     - **Divergence:** since `6343494`/`0dd12ab` a diverged replay stops with a
-      message instead of freezing. The human's rain recording
+      message instead of freezing. The trigger is the first schedule
+      mismatch, or a stall of `RECOMP_REPLAY_STALL_SECS` (default 30). The
+      replay logs `[REPLAY] diverged at poll P (agent A, run R of N)`,
+      shows a message box when windowed and exits with code 4.
+      `RECOMP_REPLAY_KEEP_GOING=1` runs on for diagnosis.
+      `RECOMP_SCHED_SITES=1` tags each recorded value with its guest call
+      site; set it for both the record and the replay. The human's rain recording
       `20261013-140430` diverged in the hub (main thread asked for SYSTIME
       where the recording had RDTSC/SLEEP/FILETIME). Reported to P5.
   - Outside a replay nothing changes: normal play at 30 fps in stage 01-01,
