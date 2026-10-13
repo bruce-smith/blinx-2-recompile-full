@@ -420,6 +420,10 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     reflections at `0x81364000`/`0x812E4000`, aliases of surfaces
     `0x01364000`/`0x012E4000`, now compared physically). Both fixes are
     kept. Since `6191c63` the raster ring is 16 batches.
+    Since `6f40ab2`, draws that sample their own target (Blinx 2's two
+    full-screen colour passes) shade four lanes at a time: +2 fps in stage
+    01-01 gameplay. `RECOMP_SELF_SAMPLE_SCALAR=1` restores the old path.
+    Stencil-tested draws are still scalar.
   - **Heap exhaustion: fixed** with `xbox_SetMapSize(128 MB)` in `main.c`
     (78 MB heap; the title still sees 64 MB of RAM).
   - **Seeds added (2026-10-10):** `0x001B8BF0` (IPK loader thread), and
