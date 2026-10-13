@@ -269,6 +269,16 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   `RECOMP_WATCHDOG_SECS=<n>` hang watchdog (dumps guest esp, 6 regs, ICALL
   trace, NV2A pointers, and 400 dwords of guest stack, then `_exit(3)`),
   `RECOMP_UNIMPL_TRAP=1` stop at the first unimplemented instruction.
+  The Vulkan backend (xboxrecomp `8281574`; owner blinx2project-11) is all
+  off by default:
+  - `RECOMP_GPU=vulkan` is the experimental GPU backend (`src/gpu_vk`).
+  - `RECOMP_VK_PRESENT=1` presents the software frame through a swapchain.
+  - `RECOMP_VK_COMPARE=1` runs both renderers and logs `[VKCMP]` diffs
+    (`RECOMP_VK_COMPARE_DUMP=<prefix>` dumps them).
+
+  The first configure FetchContent-downloads Vulkan-Headers, volk and
+  glslang (pinned, SHA-256). `-DXBOXRECOMP_VULKAN=OFF` skips that. Its
+  hooks into `nv2a_pb_exec.c` act only inside the `s_backend` path.
   `RECOMP_TITLE_KEVENTS` defaults to 1 (`=0` opts out; blinx2-recomp
   `13018e3`). D3D's BlockUntilVerticalBlank (`sub_002E0DB0`) waits on a
   title-built KEVENT at device+0x1DBC. Without it that wait failed at once,
