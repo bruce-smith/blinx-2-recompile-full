@@ -436,7 +436,20 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     Since `6f40ab2`, draws that sample their own target (Blinx 2's two
     full-screen colour passes) shade four lanes at a time: +2 fps in stage
     01-01 gameplay. `RECOMP_SELF_SAMPLE_SCALAR=1` restores the old path.
-    Stencil-tested draws are still scalar.
+    Since `be8bf27`, stencil-tested draws are four-lane as well (100-750 kpx
+    a frame in stage 01-03, about 30% less per pixel). Only draws without
+    combiners stay scalar. `RECOMP_PIXEL_CHECK` also compares the stencil
+    bytes.
+    Rain stage 01-03 (Tom-Tom) fps: `6793bd3` fetches bilinear taps four at
+    a time and blends them in SSE. Four full-screen glow passes sample a
+    320x240 linear texture 16 times per pixel. That took it from 23.6 to
+    28.7 fps mean (in-run A/B). It now mostly holds 30 on a quiet machine.
+    The remaining dips are 8-10k draws and 3-4 Mpx a frame, where the
+    workers are pixel-bound (combiner evaluation and texture fetch). The
+    executor sleeps about half the time there. Route: P7's save copy plus
+    `rec_2338.rec` (THEN_LIVE), see `E:\blinx2_altbuild\Release\rain_run.ps1`.
+    The human's exact recording `20261013-140430` diverged on replay
+    (sched kind mismatch in the hub, reported to P5).
   - **Heap exhaustion: fixed** with `xbox_SetMapSize(128 MB)` in `main.c`
     (78 MB heap; the title still sees 64 MB of RAM).
   - **Seeds added (2026-10-10):** `0x001B8BF0` (IPK loader thread), and
