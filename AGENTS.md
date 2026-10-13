@@ -556,6 +556,15 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   runs that DPC right after the ISR. `RECOMP_APU_DPC_INLINE=0` restores the
   old behaviour. Diagnostics: `RECOMP_APU_TRAP_TRACE`, `[DPCSPIN]`, the
   `[DPC]` host stack on a dispatch-lock timeout, `[DSAPU]`/`[DSTIMER]` dumps.
+- **Boot stall in D3D's DPC: fixed** (xboxrecomp `ffc0560`). D3D's DPC
+  (`sub_002EAC90` → `sub_002EA4E0`) acks the vblank, then spins at
+  DISPATCH until PMC_INTR bit 24 drops. Only the runtime's vblank ack drops
+  it, and that ran between pushbuffer passes on the executor thread, so a
+  slow pass (P7's per-flip frame dump stuck in WriteFile) froze the timer
+  thread: 15 s, no flips, watchdog. The ack now has its own thread under
+  `RECOMP_VBLANK`. Note: trees built without `/Zi` on `xbox_kernel` name
+  nv2a_pb_exec.c's static functions after the nearest public symbol (the
+  raster workers show up as `nv2a_pb_exec_report+0x37DD`).
 - The `blinx2_0NN.rec` scan (000–359, each opened twice) is **not** a
   blocker, but it is slow: the sampler shows the main thread ~100% in
   `ZwWriteFile` under stderr `fprintf`, so its 4–15 min length tracks how fast
