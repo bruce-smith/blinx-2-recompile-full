@@ -406,6 +406,12 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     15 soak runs since, none stalled. With `RECOMP_WATCHDOG_STALL` set, a
     stall dumps the executor/worker stacks and the pool state (`da6c7a7`).
     `47a38a2` (P8) times the drains by call site.
+    Since `c31c3cc`, a barrier holds back every band, not only the ones its
+    own triangles touch, so a later draw of the same render target needs
+    no new barrier. Stage 01-01 went from ~17 to ~8.6 barriers a frame and
+    reaches **30 vs 27 fps** median (in-run A/B): the 2-vblank cadence.
+    `RECOMP_RQ_STATS=1` prints per-frame worker sleep (geometry, barrier,
+    idle), executor wait and batch counts every 60 flips.
   - **Heap exhaustion: fixed** with `xbox_SetMapSize(128 MB)` in `main.c`
     (78 MB heap; the title still sees 64 MB of RAM).
   - **Seeds added (2026-10-10):** `0x001B8BF0` (IPK loader thread), and
