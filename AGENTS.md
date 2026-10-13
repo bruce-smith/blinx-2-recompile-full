@@ -6,16 +6,16 @@ Windows launcher `py -3` (Python 3.12 at `C:\Python312`).
 
 ## Layout
 
-- `xboxrecomp/` â€” clone of github.com/sp00nznet/xboxrecomp (v0.13.1): the
+- `xboxrecomp/` — clone of github.com/sp00nznet/xboxrecomp (v0.13.1): the
   Python recomp pipeline + the C runtime libraries. It is a git repo and may
-  carry local uncommitted edits â€” run `git -C xboxrecomp status` / `diff`
+  carry local uncommitted edits — run `git -C xboxrecomp status` / `diff`
   before assuming it is pristine, and never revert it blindly.
-- `blinx2-recomp/` â€” the game project that produces the `.exe`. Copied from
-  `xboxrecomp/templates/new-game/`; `project(blinx_2_recomp)` â†’ the exe is
+- `blinx2-recomp/` — the game project that produces the `.exe`. Copied from
+  `xboxrecomp/templates/new-game/`; `project(blinx_2_recomp)` → the exe is
   named `blinx_2_recomp.exe`. It is now its **own git repo** (initial commit
   holds `.gitignore`, `CMakeLists.txt`, `src/main.c`, `src/recomp_manual.c`);
   the existing `.gitignore` excludes `build/` and the fully generated
-  `src/recomp/gen/`, so those never appear in `git status` â€” regenerate rather
+  `src/recomp/gen/`, so those never appear in `git status` — regenerate rather
   than version them.
 - The workspace root `E:\Blinx2project` is itself a git repo (origin
   github.com/bruce-smith/blinx-2-recompile-full). `xboxrecomp/` and
@@ -27,17 +27,17 @@ Windows launcher `py -3` (Python 3.12 at `C:\Python312`).
   commits, bump the pointers here (`git add xboxrecomp blinx2-recomp`) and
   push the superproject. The root `.gitignore` excludes `Blinx_2.xiso`, `game_files/`,
   `ghidra_12.1.4_PUBLIC/` and the bulky `assets/` subdirectories.
-- `game_files/` â€” disc contents extracted from `Blinx 2.xiso` (root) with
+- `game_files/` — disc contents extracted from `Blinx 2.xiso` (root) with
   `xdvdfs.exe` (root; `xdvdfs.exe --help` for `unpack`/`ls`/`pack`):
   `default.xbe` (38 MB) + `.ipk`/`.iph` data.
-- `notes/step 2..7.txt` â€” verbatim record of every pipeline command actually
+- `notes/step 2..7.txt` — verbatim record of every pipeline command actually
   run **with its full output**. This is the ground truth for flags used; read
   the relevant step before re-running anything.
-- `notes/first-opencode-session.md` â€” full record of the 2026-10-08/09 OpenCode
+- `notes/first-opencode-session.md` — full record of the 2026-10-08/09 OpenCode
   bring-up session (the DSOUND fix + audio-spin diagnosis).
-- `ghidra_12.1.4_PUBLIC/` â€” Ghidra install, used only by the optional
+- `ghidra_12.1.4_PUBLIC/` — Ghidra install, used only by the optional
   symbol-naming step.
-- `assets/` â€” the `.ipk`/`.iph` archives extracted with blipks. `CATALOG.md`
+- `assets/` — the `.ipk`/`.iph` archives extracted with blipks. `CATALOG.md`
   covers formats, the per-archive and per-type inventory, and open
   questions; `README.md` says how to reproduce. `extracted/` (~1.7 GB of
   game data), `tools/` and `logs/` are gitignored. The `.ipk`s hold
@@ -54,7 +54,7 @@ Upstream docs are authoritative and good: `xboxrecomp/README.md` (Quick Start),
 # toolkit runtime libs only
 cmake --build E:\Blinx2project\xboxrecomp\build --config Release
 
-# the game â€” CMakeLists add_subdirectory's ../xboxrecomp, so this rebuilds the
+# the game — CMakeLists add_subdirectory's ../xboxrecomp, so this rebuilds the
 # runtime libs as well; building the game alone is usually enough
 cmake --build E:\Blinx2project\blinx2-recomp\build --config Release
 ```
@@ -64,7 +64,7 @@ cmake --build E:\Blinx2project\blinx2-recomp\build --config Release
 - Output: `blinx2-recomp\build\Release\blinx_2_recomp.exe` (~125 MB). A full
   build of the generated C is ~16 min; rebuilds are fast when only
   game/runtime sources changed.
-- The log is wall-to-wall warnings â€” grep for `error C` / `LNK` before
+- The log is wall-to-wall warnings — grep for `error C` / `LNK` before
   concluding anything from a failed build. A failure inside `xboxrecomp/src`
   is usually a local edit there: check `git -C xboxrecomp diff` before looking
   at generated code.
@@ -75,7 +75,7 @@ Run every `py -3 -m tools.*` with cwd = `E:\Blinx2project\xboxrecomp`. The
 tools' default input/output paths (`tools/disasm/output`,
 `tools/func_id/output`, `tools/abi_analysis/output`) are **relative to the
 current directory**, and `tools.recomp` reads the earlier steps' output from
-there â€” running from anywhere else scatters or misses files.
+there — running from anywhere else scatters or misses files.
 
 Order and exact commands (see `notes/step N.txt` for expected output):
 
@@ -88,7 +88,7 @@ py -3 -m tools.abi_analysis E:\Blinx2project\game_files\default.xbe -v          
 py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --split 250 --gen-dir E:\Blinx2project\blinx2-recomp\src\recomp\gen --exclude-manual E:\Blinx2project\blinx2-recomp\src\recomp_manual.c --coalesce-functions E:\Blinx2project\blinx2-recomp\seeds\coalesce.json   # ~15 min
 ```
 
-- **`--coalesce-functions â€¦\seeds\coalesce.json` is required.** It
+- **`--coalesce-functions …\seeds\coalesce.json` is required.** It
   merges false splits whose loops would otherwise become host-stack
   recursion (`sub_00044900` overflowed the host stack ~11 min in). Needs
   xboxrecomp `ce832a6`+ (the `internal_alias_starts` key).
@@ -116,8 +116,8 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     `media\dds\.dds` probe flood.
 
   With the full list the disasm finds 10,525 functions (was 8,688): D3DX
-  3â†’459, XGRPH 10â†’735, D3D 94â†’295, XPP 11â†’230, SRCADV 66â†’261. Unresolved
-  stubs dropped 389â†’204, and 157 of the remaining ones are in `.text`.
+  3→459, XGRPH 10→735, D3D 94→295, XPP 11→230, SRCADV 66→261. Unresolved
+  stubs dropped 389→204, and 157 of the remaining ones are in `.text`.
   `tail_jump_alias` is 1,301. Check `recomp_stubs_unresolved.c`'s count after
   every regen.
   - **DOLBY is deliberately excluded:** it is the Dolby encoder's DSP56300
@@ -138,7 +138,7 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   `disasm` line. Without it the worker `0x002D702E` is missed and boot dies on
   an unresolved ICALL. Docs: `tools/recomp/icall_feedback.py`.
 - The `float` data-pointer pass (`_pass_data_ptr_targets`) scans **only**
-  conventional data sections (`.rdata`/`.data`/`.data1`/â€¦). With `--text-only`
+  conventional data sections (`.rdata`/`.data`/`.data1`/…). With `--text-only`
   every other section counts as data, and the `MDL*`/`M*`/`G*` model blobs are
   not pointer tables: scanning them produced 14,549 coincidental "function
   addresses" (the `tail_jump_alias` fragments), fixed 2026-10. Do not widen it
@@ -146,7 +146,7 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   `tools/disasm/test_data_ptr_sections.py`.
 - The analysis JSON is named `mygame_analysis.json`, **not**
   `default_analysis.json`. Tools look for `<xbe stem>_analysis.json` and accept
-  any `*_analysis.json` only while `game_files/` holds exactly one `.xbe` â€”
+  any `*_analysis.json` only while `game_files/` holds exactly one `.xbe` —
   drop a second XBE in there and the lookup silently breaks (or pass
   `--analysis-json`).
 - Output is 43 `recomp_*.c` + `recomp_funcs.h` + `recomp_dispatch.c` +
@@ -154,12 +154,12 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   lines with the full extra-section list, 2026-10-10). `recomp_types.h` is written by the recompiler,
   not the template: "Cannot open include file: recomp_types.h" means the
   recomp run never finished.
-- `blinx2-recomp/src/recomp/gen/` is gitignored and fully regenerated â€” never
+- `blinx2-recomp/src/recomp/gen/` is gitignored and fully regenerated — never
   hand-edit it. Hand-written code goes in `blinx2-recomp/src/recomp_manual.c`
   (`recomp_lookup_manual`, `recomp_unimpl`, `sub_X` overrides).
 - The game `CMakeLists.txt` globs `gen/*.c` with `CONFIGURE_DEPENDS`, so
   added/removed chunks are picked up on the next build; unresolved externals
-  like `recomp_0087.c` mean the glob is stale â€” re-run configure.
+  like `recomp_0087.c` mean the glob is stale — re-run configure.
 - Regeneration rewrites every gen file, so the following build is a full
   ~16 min rebuild, not an incremental one.
 - Optional Ghidra naming (`tools/ghidra_naming/run_ghidra.sh`) is a dead end
@@ -237,7 +237,7 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   relink, build the `xbox_kernel` target alone to check that it compiles.
 - **Agents / scripted runs: set `RECOMP_HEADLESS=1`.** That means no window,
   no dialog, and none of the four defaults. Set
-  `RECOMP_PB_EXEC`/`RECOMP_USB`/â€¦ explicitly, and redirect stderr. The
+  `RECOMP_PB_EXEC`/`RECOMP_USB`/… explicitly, and redirect stderr. The
   untracked `build\Release\run_p4.ps1` does this.
 - `blinx2-recomp/src/main.c` hardcodes `BLINX_2_XBE_PATH` /
   `BLINX_2_DIR` as absolute `E:\Blinx2project\game_files` paths and the
@@ -245,7 +245,7 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
 - Crash diagnostics come from the VEH handler in `main.c`: guest registers,
   guest-stack return addresses, and the last 16 ICALL targets. Function names
   (`sub_XXXXXXXX`) come from dbghelp + the PDB, but the default Release build
-  emits **no `.pdb`** â€” use a Debug/RelWithDebInfo build (or add `/DEBUG`) if
+  emits **no `.pdb`** — use a Debug/RelWithDebInfo build (or add `/DEBUG`) if
   you want named frames in the crash output.
 - Runtime env switches (read via `getenv`, no rebuild needed):
   `RECOMP_AC97_READY=1` routes the APU aperture and starts the emulated APU
@@ -289,12 +289,12 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
 
 ## Tests
 
-- Python suite: `py -3 -m pytest tools/` from `xboxrecomp` â€” clean run (pytest
+- Python suite: `py -3 -m pytest tools/` from `xboxrecomp` — clean run (pytest
   9.1.1 installed 2026-10) is **574 passed / 38 skipped / 57 subtests passed**;
   the skips need a C compiler on PATH, so check the skip count, not just the
   pass count. `tools/fusion/test_lifter_diff.py` needs the optional `pefile`
-  module â€” `--ignore=tools/fusion` if it is absent. `capstone` 5.0.7.
-- `py -3 -m tools.conformance` â€” differential lifted-C-vs-real-CPU suite.
+  module — `--ignore=tools/fusion` if it is absent. `capstone` 5.0.7.
+- `py -3 -m tools.conformance` — differential lifted-C-vs-real-CPU suite.
 - C runtime tests: each `xboxrecomp/tests/<name>/` is a **standalone** CMake
   project (configure/build/ctest per its README). The top-level build does not
   add them, so `ctest` in the main build dirs has nothing to run.
@@ -314,14 +314,14 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
 - **Boot status (2026-10-10):** full write-up in
   `notes/audio-spin-fix.md`. Boot now gets past audio init, DirectSound init,
   the texture loader and the old SetLastError crash, and plays the intro movies
-  (NV2A pushbuffer `PUT = GET = 0x2BB0`). It reaches this point in ~1â€“2 min
+  (NV2A pushbuffer `PUT = GET = 0x2BB0`). It reaches this point in ~1–2 min
   and ran 900 s with no crash.
   - **Audio-queue spin: fixed.** Root cause was in the runtime, not AC97:
     `bridge_PsCreateSystemThreadEx` ignored `CreateSuspended`. Audio init
     (`sub_002A1BE0`) creates `sub_002A1B20`/`sub_002A1BA0`/`sub_002A17B0`
     suspended, stores their handles, then resumes them. Started early,
     `sub_002A17B0` self-suspended on a handle slot (`0xF4A140`) that was still
-    0, failed (NtSuspendThread + RtlNtStatusToDosError Ã—675k), and spun with
+    0, failed (NtSuspendThread + RtlNtStatusToDosError ×675k), and spun with
     the others on lock `0x00F4A160`. The bridge now creates the host thread
     `CREATE_SUSPENDED` (log shows `(suspended)`).
   - **DirectSound DSP doorbell: worked around.** `sub_003341BE`, holding
@@ -329,14 +329,14 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     until the (stub) GP DSP clears it. The address moves with contiguous
     allocations (0x803D0810, then 0x80A20810), so `src/main.c` resolves it at
     run time from `[[[[[[g_pDS@0xEC4C0C]+0x4]+0x14]+0x8]+0x10]]+0x810` and
-    clears it (`[DSP] â€¦` log lines).
+    clears it (`[DSP] …` log lines).
   - **SetLastError AV (`sub_00299449`): fixed.** The runtime's fixed layout
     (fake TLS/KTHREAD blocks at `0x0070xxxx`, main stack
-    `0x00780000â€“0x00F80000`, bump heap from `0x00F80000`) sat on top of
+    `0x00780000–0x00F80000`, bump heap from `0x00F80000`) sat on top of
     Blinx 2's image, which ends at `0x0303AC20` (`.data` BSS alone runs to
     `0x0103DB40`). Stack, CRT heap and game globals overwrote each other.
     `xbox_memory_layout.[ch]` now moves that region above the image
-    (`0x03040000`, stack 1 MB, heap `0x031C0000â€“0x04000000`, 14 MB) when the
+    (`0x03040000`, stack 1 MB, heap `0x031C0000–0x04000000`, 14 MB) when the
     image reaches `0x00700000`. Smaller images keep the old layout.
   - **Texture-name flood: fixed** by regenerating with the full
     `--extra-sections` list (an unresolved D3DX stub leaked guest stack).
@@ -369,13 +369,13 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     shade four pixels at once (`a622dca`; `RECOMP_SCALAR_PIXELS=1` is the
     scalar reference). `RECOMP_PIXEL_CHECK=1` draws every span both ways and
     reports differences: slow, for testing only. In-play hub camera:
-    ~19 â†’ ~27 fps, most frames at the title's 2-vblank (30 fps) cadence.
-    On an otherwise idle machine the in-play hub holds 30â€“31 frames/s. The
+    ~19 → ~27 fps, most frames at the title's 2-vblank (30 fps) cadence.
+    On an otherwise idle machine the in-play hub holds 30–31 frames/s. The
     heaviest view so far is the hub's high overview camera behind the first
     CHALLENGE prompt, with the reflective floor filling the frame.
   - **Rendering glitches, resolved.** The human's random yellow/black
     one-frame glitches were methods lost at pushbuffer wraps (`c59c2cf`).
-    Later "reflection + HUD gone for 1â€“3 frames" sightings were a capture
+    Later "reflection + HUD gone for 1–3 frames" sightings were a capture
     artifact: mid-frame report dumps overwrote flip dumps (`9ef0a2e`).
     `RECOMP_FRAME_SUMMARY=1|2` separates "the title submitted different work"
     from "the same work rendered differently".
@@ -389,7 +389,7 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     stream shared with every guest thread. The per-kick and per-flip lines
     cost ~14% of the executor until they were gated on
     `RECOMP_NV2A_TRACE` (`c0a6afa`, `62d8aa6`). A 4-min hub log went from
-    ~100â€“170k lines to ~8k. Keep anything per-kick, per-draw or per-pixel
+    ~100–170k lines to ~8k. Keep anything per-kick, per-draw or per-pixel
     behind an env switch.
   - **Asynchronous sync points: default since xboxrecomp `e2ceab5`**
     (`4c40733`; `RECOMP_ASYNC_SYNC=0` restores the drains). The flip
@@ -430,9 +430,9 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     cannot resume in lifted code (esp came back +0x90, ebx/esi/edi = -1, then
     an endless surface-chain walk). `recomp_manual.c` now returns E_FAIL unless
     the data starts with the JPEG SOI `FF D8` (needs `--exclude-manual`).
-  - **Reached the title screen (2026-10-10):** intro movies â†’
-    `title_tex_us` / `uniform_tex` â†’ title background movie
-    `title_movie_1a.sfd` + title music `adx\song_TITLE.adx` â†’ `tsinfo_tex_us`,
+  - **Reached the title screen (2026-10-10):** intro movies →
+    `title_tex_us` / `uniform_tex` → title background movie
+    `title_movie_1a.sfd` + title music `adx\song_TITLE.adx` → `tsinfo_tex_us`,
     `media\plcom_tex`. Nothing is drawn (GPU-idle shim; `RECOMP_PB_EXEC` off).
   - **Host stack overflow at `plcom_tex`: fixed.** `sub_00044900` was
     split at five false interior starts; a loop across them became tail-call
@@ -450,8 +450,8 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     and polled finished loader threads forever. Thread handles now get a
     per-handle guest KTHREAD stub that tracks the host thread.
   - **Current state (2026-10-11): input works; the game reaches the hub.**
-    Intro movies â†’ title â†’ (Start) `gamestart_adx.adx` â†’ `R0_opening.sfd`
-    (or `title_movie_2a.sfd` once a save exists) â†’ hub level `mgtu_ts` with
+    Intro movies → title → (Start) `gamestart_adx.adx` → `R0_opening.sfd`
+    (or `title_movie_2a.sfd` once a save exists) → hub level `mgtu_ts` with
     its first "CHALLENGE" prompt. No unresolved ICALLs, no crash.
     - **Speed:** about 30 fps in the hub, vblank-bound (83% of main-thread
       samples in the frame-pacing wait at `0x00060475`); it was about 4.5 fps.
@@ -480,8 +480,10 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
       `a:600`, because 200 ms presses can fall between 4 fps polls.
     - **Pipeline:** `--extra-sections` as listed above. Seeds
       (`blinx2-recomp/seeds/seed_functions.json`, 46 entries) cover the XPP
-      USB callbacks, the opening-movie, attract and hub ICALL targets, and
-      `0x000EF540` (the stage 01-01 mission-load completion callback), and the post-results / pause-path callbacks `0x001AE1E0`, `0x001B04E0`, `0x0016A870` (pause menu stuck without it; `0420aa9`). Any
+      USB callbacks, the opening-movie, attract and hub ICALL targets,
+      `0x000EF540` (the stage 01-01 mission-load completion callback), and
+      the post-results / pause-path callbacks `0x001AE1E0`, `0x001B04E0`,
+      `0x0016A870`. The pause menu stuck without the last one (`0420aa9`). Any
       new `[ICALL] Failed to resolve` that is a gap-start gets seeded, and
       the pipeline is rerun.
     - A save (`game_files/UDATA/4d530065/13C91777168C/`) is created once the
@@ -491,15 +493,15 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     `stg0101` cache copy (`[CONTIG] arena exhausted`, 66,973,696 bytes used),
     deterministically and with or without `RECOMP_PB_EXEC`. `main.c` now
     defaults `RECOMP_HEAP_RECLAIM=1`. The stage cache copies then finish
-    (`.tmp` â†’ `.ipk` renames OK) and the attract demo
+    (`.tmp` → `.ipk` renames OK) and the attract demo
     (`demoplay\r01s01demo.dat`) plays.
   - **Rendering with `RECOMP_PB_EXEC=1 RECOMP_FB_WINDOW=1`:** the Sofdec logo,
     the textured title screen and the textured 3D stage 01-01 all appear in the
     FB window/BMP dumps (`RECOMP_FB_DUMP=fb_`).
   - **Input works (2026-10-11).** Run with `RECOMP_USB=1` (plus
     `RECOMP_PAD_PRESS=0x10` or `RECOMP_PAD_SCRIPT` when there's no host pad).
-    Start skips the logo movies and leaves the title (`gamestart_adx.adx` â†’
-    `R0_opening.sfd` â†’ hub level `mgtu_ts`). It took three fixes:
+    Start skips the logo movies and leaves the title (`gamestart_adx.adx` →
+    `R0_opening.sfd` → hub level `mgtu_ts`). It took three fixes:
     - `main.c` calls `xbox_OhciInit()` and routes the OHCI apertures through
       the VEH.
     - **Memory layout (2026-10-11, xboxrecomp `2009a1c`).**
@@ -523,7 +525,7 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
       XInput handles and report buffers sit at `0x80000xxx`. Without this the
       reports went to low RAM and the buttons stayed 0.
 
-    The seeded XPP callbacks (`0x0036BA63`, `0x0036AFFE`, â€¦) complete
+    The seeded XPP callbacks (`0x0036BA63`, `0x0036AFFE`, …) complete
     enumeration. `RECOMP_XINPUT_TRACE=1` logs XInputGetState
     (`sub_00368457`) and XGetDeviceChanges (`sub_00367F0E`). It logs only on
     change or every 32nd call, and the game polls once per frame at about
@@ -557,7 +559,7 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   old behaviour. Diagnostics: `RECOMP_APU_TRAP_TRACE`, `[DPCSPIN]`, the
   `[DPC]` host stack on a dispatch-lock timeout, `[DSAPU]`/`[DSTIMER]` dumps.
 - **Boot stall in D3D's DPC: fixed** (xboxrecomp `ffc0560`). D3D's DPC
-  (`sub_002EAC90` â†’ `sub_002EA4E0`) acks the vblank, then spins at
+  (`sub_002EAC90` → `sub_002EA4E0`) acks the vblank, then spins at
   DISPATCH until PMC_INTR bit 24 drops. Only the runtime's vblank ack drops
   it, and that ran between pushbuffer passes on the executor thread, so a
   slow pass (P7's per-flip frame dump stuck in WriteFile) froze the timer
@@ -565,9 +567,9 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   `RECOMP_VBLANK`. Note: trees built without `/Zi` on `xbox_kernel` name
   nv2a_pb_exec.c's static functions after the nearest public symbol (the
   raster workers show up as `nv2a_pb_exec_report+0x37DD`).
-- The `blinx2_0NN.rec` scan (000â€“359, each opened twice) is **not** a
+- The `blinx2_0NN.rec` scan (000–359, each opened twice) is **not** a
   blocker, but it is slow: the sampler shows the main thread ~100% in
-  `ZwWriteFile` under stderr `fprintf`, so its 4â€“15 min length tracks how fast
+  `ZwWriteFile` under stderr `fprintf`, so its 4–15 min length tracks how fast
   stderr is drained, not guest compute. Per `assets/CATALOG.md` the Z: cache
   slots are all zero, and `media\dds\.dds` is an empty texture name (no
   missing asset). The XBE also references `media\Textures\Waterfog.xpr`,
