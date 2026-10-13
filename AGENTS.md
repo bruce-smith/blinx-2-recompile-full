@@ -605,11 +605,23 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     interleaving still drifts in gameplay (a press may land a few polls
     off). Replay against a private copy of the save the recording started
     from (`game_files\UDATA` plus `%LOCALAPPDATA%\xboxrecomp`).
-  - Exact replays (xboxrecomp `fe7f95a`, blinx2-recomp `7c758a4`):
-    `RECOMP_SCHED_RECORD=<file>` records the guest schedule (every agent
-    holds one guest CPU while it runs guest code); `RECOMP_SCHED_REPLAY=<file>`
-    runs on it, which also reproduces the v2 holds. Off by default. It
-    needs the `--yield-points`/`--loop-heads` regen above.
+  - Exact replays (xboxrecomp `fe7f95a`, blinx2-recomp `7c758a4`, P5):
+    - **Record:** run headless (no `RECOMP_PB_EXEC`, no audio; those aren't
+      agents yet, and a run with them warns it won't replay exactly) with
+      `RECOMP_SCHED_RECORD=<file>`. Every agent holds one guest CPU while it
+      runs guest code: guest threads, the timer/vblank/DPC agent and OHCI.
+      Everything taken from the host (time, timed waits, vblank decisions,
+      pad reports, file times, disk space, preemption points) is recorded.
+    - **Replay:** `RECOMP_SCHED_REPLAY=<file>` plus `RECOMP_INPUT_REPLAY=<that
+      run's input recording>`, from the same save state: restore `UDATA`
+      *and* the Z: cache (`<save dir>\Cache`). Every guest-memory hash then
+      matches (400 s of stage 01-01, 3 replays bit-identical).
+    - **Converting a human's recording:** replay it once with
+      `RECOMP_INPUT_RERECORD=<new.rec> RECOMP_SCHED_RECORD=<new.sched>`.
+    - **Compare:** `RECOMP_INPUT_HASH=10,<file>` and P5's `scratch\cmp3.py`.
+      The design is in the header of `xboxrecomp src/kernel/sched.c`.
+    - Off by default. It needs the `--yield-points`/`--loop-heads` regen
+      above.
   - Outside a replay nothing changes: normal play at 30 fps in stage 01-01,
     vblank cadence unchanged (checked 2026-10-13).
 - **`[PERF]` line in every run** (blinx2-recomp `dfac277`, xboxrecomp
