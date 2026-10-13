@@ -567,6 +567,32 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   `--exclude-manual` (emits `sub_001645A0_gen`). `RECOMP_OCTREE_WATCH=1`
   prints each build's peaks. The real Xbox presumably fits the same data;
   the SAT test's float precision follows D3D's PC=24 as on hardware.
+- **Input recording and replay** (P4; blinx2-recomp `deb4b4a`, v2
+  `f8c43b2` with xboxrecomp `49c563a`):
+  - Every windowed run writes `blinx2_input.rec` next to the exe, rotated
+    like the logs (`blinx2_input.prev-<T>.rec` pairs with
+    `blinx2_recomp.prev-<T>.log`). Headless runs don't record unless
+    `RECOMP_INPUT_RECORD=1`; `=0` turns recording off.
+  - `RECOMP_INPUT_REPLAY=<file>` plays one back (host pad and keyboard
+    ignored; `[REPLAY]` end/DESYNC lines). `RECOMP_INPUT_REPLAY_THEN_LIVE`
+    replays to a point, then hands over to live input.
+  - Version 2 also records what the game takes from host time and
+    reproduces it on replay: loading-screen passes (the loading thread
+    `sub_0005E410` / stop `sub_0005E3C0` / `Sleep` `sub_00297E0B`),
+    vblanks per poll (runtime vblank gate, 250 ms fallback),
+    `GetExitCodeThread` answers (`sub_00298004`) and pad arrival
+    (`sub_00367F0E`). Those four are `recomp_manual.c` overrides, so the
+    regen needs `--exclude-manual`. `RECOMP_REPLAY_{VBLANK,LOADING,
+    THREADS,DEVICES}=0` turn parts off; `RECOMP_INPUT_RERECORD=<file>`
+    re-records a replay as v2.
+  - Diagnostics: `RECOMP_INPUT_HASH=<every>,<file>`,
+    `RECOMP_INPUT_SNAP=p1+p2+...`.
+  - Limits: menus, loading screens and stage entry reproduce. Guest-thread
+    interleaving still drifts in gameplay (a press may land a few polls
+    off). Replay against a private copy of the save the recording started
+    from (`game_files\UDATA` plus `%LOCALAPPDATA%\xboxrecomp`).
+  - Outside a replay nothing changes: normal play at 30 fps in stage 01-01,
+    vblank cadence unchanged (checked 2026-10-13).
 - **`[PERF]` line in every run** (blinx2-recomp `dfac277`, xboxrecomp
   `3910220`): one line a second with seconds since start, fps, D3D NV2A
   interrupt calls, the peak vblank count against the title's target, the
