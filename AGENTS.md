@@ -85,8 +85,16 @@ py -3 -m tools.xbe_parser   E:\Blinx2project\game_files\default.xbe --json E:\Bl
 py -3 -m tools.disasm       E:\Blinx2project\game_files\default.xbe --text-only --extra-sections DSOUND,D3D,D3DX,XGRPH,XPP,SRCADV,SRCED,SRCAC,PSFD_I,PSFD_B,PSFD_P,PSFD00 --seed-functions E:\Blinx2project\blinx2-recomp\seeds\seed_functions.json   # ~50 s
 py -3 -m tools.func_id      E:\Blinx2project\game_files\default.xbe -v                    # ~30 s
 py -3 -m tools.abi_analysis E:\Blinx2project\game_files\default.xbe -v                    # ~1 min
-py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --split 250 --gen-dir E:\Blinx2project\blinx2-recomp\src\recomp\gen --exclude-manual E:\Blinx2project\blinx2-recomp\src\recomp_manual.c --coalesce-functions E:\Blinx2project\blinx2-recomp\seeds\coalesce.json   # ~15 min
+py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --split 250 --gen-dir E:\Blinx2project\blinx2-recomp\src\recomp\gen --exclude-manual E:\Blinx2project\blinx2-recomp\src\recomp_manual.c --coalesce-functions E:\Blinx2project\blinx2-recomp\seeds\coalesce.json --yield-points E:\Blinx2project\blinx2-recomp\seeds\yield_points.json --loop-heads   # ~15 min
 ```
+
+- **`--yield-points …\seeds\yield_points.json --loop-heads`** (since
+  xboxrecomp `fe7f95a` / blinx2-recomp `7c758a4`, P4). Every loop gets a
+  `RECOMP_LOOP_HEAD()`, about 12,400 of them, and the five device-wait
+  spins become yield points. Exact replays (`RECOMP_SCHED_REPLAY`) need
+  this. In normal play it costs a TLS increment and a compare per
+  iteration: 30.1–30.3 fps against 30.1–30.2 in stage 01-01 over 8 vs 4
+  quiet-window runs (one outlier run at 19 fps, probably load).
 
 - **`--coalesce-functions …\seeds\coalesce.json` is required.** It
   merges false splits whose loops would otherwise become host-stack
@@ -591,6 +599,11 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     interleaving still drifts in gameplay (a press may land a few polls
     off). Replay against a private copy of the save the recording started
     from (`game_files\UDATA` plus `%LOCALAPPDATA%\xboxrecomp`).
+  - Exact replays (xboxrecomp `fe7f95a`, blinx2-recomp `7c758a4`):
+    `RECOMP_SCHED_RECORD=<file>` records the guest schedule (every agent
+    holds one guest CPU while it runs guest code); `RECOMP_SCHED_REPLAY=<file>`
+    runs on it, which also reproduces the v2 holds. Off by default. It
+    needs the `--yield-points`/`--loop-heads` regen above.
   - Outside a replay nothing changes: normal play at 30 fps in stage 01-01,
     vblank cadence unchanged (checked 2026-10-13).
 - **`[PERF]` line in every run** (blinx2-recomp `dfac277`, xboxrecomp
