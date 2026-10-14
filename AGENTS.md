@@ -746,8 +746,16 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
 - `SRCADV`/`SRCED`/`SRCAC` are x86 code paired with `DATADV`/`DATED` data.
   There is **no** VM bytecode in the `.ipk` archives (`assets/CATALOG.md`).
   8 remaining unresolved stubs are in SRCADV.
-- `blinx2-recomp/CMakeLists.txt` also carries a local `RECOMP_ABI_CHECK`
-  diagnostic (checks every direct call; its log stops after ~32 entries).
+- `blinx2-recomp/CMakeLists.txt` options (blinx2-recomp `a9147f6`; the
+  build is reproducible from pushed commits, and the stamp has no `+dirty`):
+  - `-DBLINX2_ABI_CHECK=ON` (default OFF) checks every direct call's
+    callee-saved registers, logging `[ABI]` for about 32 entries. It
+    needs a full rebuild of the gen code.
+  - `BLINX2_KERNEL_DEBUG_INFO` (default ON) builds `xbox_kernel` with
+    `/Zi`, so profiles name static functions.
+
+  Recordings are stamped with the commits actually built (`build_sha.h`,
+  regenerated every build, `3f03f52`).
 
 ## Agent orchestration notes
 
