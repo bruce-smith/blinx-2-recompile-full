@@ -290,6 +290,11 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     back, a windowed run does it one frame late without waiting, and
     dumps are exact. Rain stage on the exact recording `20261014-080836`:
     Vulkan median 39 fps (p10 26), software 23 (p10 18).
+  - `blinx2-recomp\play_vulkan.bat` (`738a96c`) plays with
+    `RECOMP_GPU=vulkan`, falling back to software when Vulkan is unusable.
+    Otherwise it is a plain double-click. Windowed: hub 30 fps, rain median
+    31. `RECOMP_VK_PRESENT=1` (swapchain presentation) is left out: the
+    client area captures white (investigating, blinx2project-11).
 
   Parity in stage 01-03 (input replay, compare mode, 2026-10-14): at most
   0.14% of pixels in every gameplay stretch, 0.115% overall. Only the
