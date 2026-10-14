@@ -139,6 +139,29 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   that file to `--seed-functions`. `tools/recomp/output/` is an untracked
   output dir, and `seed_from_log` writes there, so copy the result back
   into `seeds/` and commit it after adding seeds.
+- **Pointer-only functions (the progression blockers).** Every blocker so
+  far was a function reached only through a pointer: `0x000EF540`,
+  `0x0016A870`, `0x001AE1E0`/`0x001B04E0` and `0x000AEC20`. Each was
+  installed with a push/mov immediate or listed in `.data`, sat in a gap,
+  and was refused by the body probe of the immediate and data passes (64
+  instructions; their first ret comes after 114-208). xboxrecomp
+  `f9133b1` adds `_pass_pointer_after_end`. It finds all five without
+  their seeds, and adds 108 functions on top of the 65 seeds (regression test
+  `tools/disasm/test_pointer_after_end.py`). It does not scan `DATADV`, so
+  SRCADV's callbacks there stay seeded.
+
+  The static hunt that found the rest lives in `E:\blinx2_altbuild\blocker`
+  (`hunt.py` → `verify.py`). It lists code pointers the gen cannot
+  dispatch, filtered by function-start shape. Seed with care inside
+  XGRPH's exception-helper cluster (`0x0031F000`-`0x003201FF`): seeding
+  `0x003200C9` split a shared helper, and the exact replay diverged at
+  boot.
+
+  Verify every seed batch the same way. Regenerate into a copy
+  (`E:\blinx2_seedtest\regen.ps1`) and build it. Then replay the human's
+  `20261014-080836` exactly
+  (`exact_replay.ps1 -Exe ... -DumpAt envse_r1_rain_soto`), compare its
+  dumps with `cmp_dumps.py`, and play stage 01-01 (`flash_cap.ps1`).
 - **Seed workflow** (runtime-observed entry points `--text-only` cannot find
   statically): after a run, `py -3 -m tools.seed_from_log <log>` writes
   `tools/recomp/output/seed_functions.json`, then re-run the whole pipeline
@@ -356,8 +379,11 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
 
 - Retail NA XBE, title ID `0x4D530065`, LTCG build (`c:\B\Final - LTCG\...`),
   base `0x00010000`, 73 sections, 121 kernel imports.
-- **Current count (2026-10-12, blinx2-recomp `c129123` seeds):** 10,565
-  functions through abi_analysis, 196 unresolved stubs, 45 gen `.c` files.
+- **Current count (2026-10-14, xboxrecomp `f9133b1`, blinx2-recomp `a3d3935`
+  seeds, 65 entries):** 10,610 dispatchable functions, 190 unresolved stubs.
+  None of the stubs was hit in any log so far. 184 are calls into the
+  middle of a body, 6 are outside the image.
+  On 2026-10-12 it was 10,565 functions and 196 stubs, with 45 gen `.c` files.
   `0x000EF540`, the stage 01-01 load-completion callback, is seeded; without
   it the mission summary never appears. On 2026-10-10 the count was 10,549
   functions and 204 stubs. The earlier "23,753" figure did not match the disasm summary, which
