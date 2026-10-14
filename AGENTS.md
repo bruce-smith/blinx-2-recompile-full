@@ -689,10 +689,20 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
       replay logs `[REPLAY] diverged at poll P (agent A, run R of N)`,
       shows a message box when windowed and exits with code 4.
       `RECOMP_REPLAY_KEEP_GOING=1` runs on for diagnosis.
+      Debug switches, set for both the record and the replay:
       `RECOMP_SCHED_SITES=1` tags each recorded value with its guest call
-      site; set it for both the record and the replay. The human's rain recording
-      `20261013-140430` diverged in the hub (main thread asked for SYSTIME
-      where the recording had RDTSC/SLEEP/FILETIME). Reported to P5.
+      site, `RECOMP_SCHED_SITES_PAGES=<va>+<va>` hashes those pages at each
+      turn, and `RECOMP_SCHED_CS_TRACE=1` traces critical sections.
+    - **Root cause of the divergences, fixed in `0491360`:** while
+      recording, a thread waiting for a contended lock let go of the CPU,
+      then waited "until free" by briefly taking the lock itself. That
+      applied to guest critical sections and the dispatch mutex. It made
+      turns that a replay never makes. Recordings made before that build
+      (e.g. the human's `20261013-140430`) stay unreplayable; re-record
+      them. The human's `20261014-080836` (stage 01-03 rain, made on the
+      07:26 build) replays exactly to its end. Its header says `414696b`
+      because the stamp was stale until blinx2-recomp `3f03f52`, which
+      regenerates it on every build.
   - Outside a replay nothing changes: normal play at 30 fps in stage 01-01,
     vblank cadence unchanged (checked 2026-10-13).
 - **`[PERF]` line in every run** (blinx2-recomp `dfac277`, xboxrecomp
