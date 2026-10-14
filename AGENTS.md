@@ -280,6 +280,15 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   - `RECOMP_VK_FAST_FLOAT=1` drops NaN/inf preservation.
   - `RECOMP_VK_STATS=1` prints draw, submit and pipeline counts every 60
     frames.
+  - `RECOMP_VK_SMOOTH_COLOR=0` gives screen-linear vertex colours and fog
+    (the old behaviour). The default is perspective-correct, as in the
+    software path since `1b37fdc`.
+  - `RECOMP_VK_RTT_TRACE=1` logs how textures sample Vulkan render targets
+    (`[VKRTT]`).
+
+  Parity in stage 01-03 (input replay, compare mode, 2026-10-14): at most
+  0.14% of pixels in every gameplay stretch, 0.115% overall. Only the
+  opening movie's decode race is above 2%.
 
   With `005e12b`'s texture cache index, the Vulkan attract demo reaches
   the 30 fps cap.
