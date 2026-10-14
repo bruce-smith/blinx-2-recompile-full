@@ -285,6 +285,11 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     software path since `1b37fdc`.
   - `RECOMP_VK_RTT_TRACE=1` logs how textures sample Vulkan render targets
     (`[VKRTT]`).
+  - `RECOMP_VK_WRITEBACK=1` and `RECOMP_VK_READBACK=0|1|2` set how frames
+    reach guest memory (`55e6820`). By default headless reads nothing
+    back, a windowed run does it one frame late without waiting, and
+    dumps are exact. Rain stage on the exact recording `20261014-080836`:
+    Vulkan median 39 fps (p10 26), software 23 (p10 18).
 
   Parity in stage 01-03 (input replay, compare mode, 2026-10-14): at most
   0.14% of pixels in every gameplay stretch, 0.115% overall. Only the
