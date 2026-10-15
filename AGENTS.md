@@ -318,7 +318,29 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     - fault injection `RECOMP_VK_FAIL_AT=<n>` (the nth submit is never
       sent): the game carries on in software.
   - `RECOMP_GPU=vulkan` spells out the default.
-  - `RECOMP_VK_PRESENT=1` presents the software frame through a swapchain.
+  - Device choice (`4002eb0`):
+    - only devices with every feature the backend enables count;
+    - discrete is preferred over integrated over virtual;
+    - CPU implementations (lavapipe, SwiftShader) are used only when named;
+    - `RECOMP_VK_DEVICE=<index|part of the name>` picks one, and one that
+      matches nothing is logged and auto-picked;
+    - missing window-system extensions only disable `RECOMP_VK_PRESENT`.
+  - `RECOMP_VK_PRESENT=1` presents through a Vulkan swapchain. Since
+    `7a086f9` the Vulkan renderer presents its own colour surface there,
+    at its own resolution, with no read-back. It stays off by default (the
+    GDI window). GDI screen capture sees a swapchain as white;
+    `RECOMP_VK_PRESENT_DUMP=<n>` writes the nth presented image to
+    `vkpresent_<n>.bmp` instead. The overlay hook `xbox_vk_overlay_set`
+    (`xbox_vk.h`) is for the menu and AA.
+  - **Escape menu** (P4, xboxrecomp `82d2f2b`, blinx2-recomp `c31411d`):
+    ImGui fetched at configure (network on the first build), controller
+    bindings, a settings file, and graphics and cheat panels. With the menu
+    closed, the frame path and the exact replays are unchanged, and
+    fps is the same (quiet A/B in the rain: 21-22 vs 22-23 heavy, 30
+    light). The replays do not exercise live keyboard/pad mapping
+    (`xinput_device.c` rewrite), so check that by hand.
+  - **Capture/glTF** (P7, `95e28c6`/`2da5642`, blinx2-recomp `tools/ninja`):
+    `RECOMP_CAPTURE=<dir>` writes what frames draw; it is inert without it.
   - `RECOMP_VK_COMPARE=1` runs both renderers and logs `[VKCMP]` diffs
     (`RECOMP_VK_COMPARE_DUMP=<prefix>` dumps them).
   - `RECOMP_VK_CPU_VSH=1` runs vertex programs on the CPU (they run on the
@@ -383,6 +405,29 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     as OHCI `bus_resolve` and `mcpx_apu_phys`.**
 
   Details: `E:\blinx2_wt\audio\notes-audio.md`.
+
+### Linux (blinx2project-13; xboxrecomp `f82fe94`, blinx2-recomp `933904a`)
+
+- **Packages:** builds with gcc/clang. On Ubuntu 24.04 install
+  `build-essential cmake ninja-build clang libsdl2-dev libvulkan-dev
+  libssl-dev libepoxy-dev libgl-dev`.
+- **Configure and run:**
+  `cmake -S blinx2-recomp -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+  -DBLINX2_GAME_DIR=<game_files>`. The exe is `build/blinx_2_recomp`, a PIE
+  with the guest identity-mapped from `0x10000` as on Windows.
+- **Launchers:** `play.sh`, `play_software.sh`, `record_blinx2.sh`,
+  `replay_blinx2.sh`.
+- **Devices:** window, keyboard, pad and audio go through SDL2
+  (`fb_present_sdl.c`, `xinput_host_sdl.c`, `apu_audio_sdl.c`). Vulkan is
+  offscreen only (`vk_platform_posix.c`, no swapchain yet). The menu is not
+  on Linux yet (`ui_none.c`).
+- **Status:** headless in Docker it boots to the stage 01-01 attract demo,
+  25-30 fps in software. Not yet run on a display. Details:
+  `C:/Users/cat126/.ao/data/artifacts/blinx2project-13/notes-port.md`.
+- **Windows impact:** `ff26707`/`f82fe94` removed the `_WIN32` guards around
+  the raster pool; that is preprocessor-only on MSVC. POSIX gets the same
+  pool through `platform/win32_compat` (seq_cst Interlocked*, a 64-bit CAS,
+  SRW waits with timeouts).
 
 ## Tests
 
