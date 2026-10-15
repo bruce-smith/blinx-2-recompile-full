@@ -341,6 +341,31 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     (`xinput_device.c` rewrite), so check that by hand.
   - **Capture/glTF** (P7, `95e28c6`/`2da5642`, blinx2-recomp `tools/ninja`):
     `RECOMP_CAPTURE=<dir>` writes what frames draw; it is inert without it.
+  - **Anti-aliasing** (P10, `7489b90`/`24c2d5e`, Vulkan only; the menu's
+    Graphics tab or the environment):
+    - `RECOMP_VK_SCALE=3|5` is supersampling. Visibility counts stay at
+      native resolution, since the game reads 5-17 of them a frame.
+    - `RECOMP_VK_AA=fxaa` adds FXAA.
+    - The default is 1x with no FXAA. The exact replays and fps were
+      checked at that default.
+  - **Frame pacing** (P10, `0b6fad9`):
+    - `RECOMP_VK_FPS_CAP=30|60` caps Vulkan presentation (for driver frame
+      generation, which wants one steady rate).
+    - `RECOMP_FB_FULLSCREEN=1` starts borderless fullscreen (the menu's
+      "Start in fullscreen").
+    - The README's "Frame generation" section covers NVIDIA Smooth Motion
+      and AMD Fluid Motion Frames.
+  - **Cheats** (blinx2project-12, blinx2-recomp `83b1bff`..`88180d1`):
+    - `src/cheats.c` and the menu's Cheats tab: money, items, infinite
+      ammo, invincibility, stage warp and a free camera.
+    - Two `--exclude-manual` wrappers, `sub_0019B790` (the hit routine) and
+      `sub_000292A0` (the view matrix). **A gen older than `83b1bff` fails
+      to link**, so regenerate.
+    - With cheats off, the wrappers are plain calls to `_gen` and the exact
+      replays are identical.
+    - An applied cheat is recorded as an input event (`IN_EVT_CHEAT`), so a
+      replay applies it at the same poll.
+    - `RECOMP_CHEAT_SCRIPT` and `RECOMP_CHEAT_TRACE` are for testing.
   - `RECOMP_VK_COMPARE=1` runs both renderers and logs `[VKCMP]` diffs
     (`RECOMP_VK_COMPARE_DUMP=<prefix>` dumps them).
   - `RECOMP_VK_CPU_VSH=1` runs vertex programs on the CPU (they run on the
@@ -407,6 +432,11 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   Details: `E:\blinx2_wt\audio\notes-audio.md`.
 
 ### Linux (blinx2project-13; xboxrecomp `f82fe94`, blinx2-recomp `933904a`)
+
+User-facing build, run and Steam Deck notes are in blinx2-recomp's README
+("Linux and Steam Deck", plus `linux/Dockerfile` and
+`linux/build-in-docker.sh`). Read-only installs keep logs and settings in
+`$XDG_STATE_HOME/blinx2-recomp`.
 
 - **Packages:** builds with gcc/clang. On Ubuntu 24.04 install
   `build-essential cmake ninja-build clang libsdl2-dev libvulkan-dev
