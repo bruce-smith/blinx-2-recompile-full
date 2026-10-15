@@ -292,9 +292,32 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
   `RECOMP_WATCHDOG_SECS=<n>` hang watchdog (dumps guest esp, 6 regs, ICALL
   trace, NV2A pointers, and 400 dwords of guest stack, then `_exit(3)`),
   `RECOMP_UNIMPL_TRAP=1` stop at the first unimplemented instruction.
-  The Vulkan backend (xboxrecomp `8281574`; owner blinx2project-11) is all
-  off by default:
-  - `RECOMP_GPU=vulkan` is the experimental GPU backend (`src/gpu_vk`).
+  **Vulkan is the default renderer since 2026-10-14** (the human's
+  decision; owner of `src/gpu_vk` is blinx2project-11).
+  - With `RECOMP_GPU` unset, the Vulkan backend draws. If it cannot come
+    up, the software rasteriser draws instead. If the GPU is lost mid-run,
+    software takes over at the next flip (`fefb6a7`/`006a63e`: waits are
+    bounded and pending reports answered, so nothing hangs).
+  - `RECOMP_GPU=software` (alias `soft`) selects the software rasteriser,
+    the reference. `blinx2-recomp\play_software.bat` replaced
+    `play_vulkan.bat` and launches it.
+  - Each run logs one `[GPU] renderer: <vulkan|software> (<why>)` line.
+    `replay_blinx2.bat` reads it from a recording's `game.log` and replays
+    with the same renderer. Recordings made before the switch have no
+    such line and replay in software, as they were made.
+  - **Software-path work must set `RECOMP_GPU=software`.** That covers
+    `RECOMP_PIXEL_CHECK`, `RECOMP_RQ_STATS`, `RECOMP_SCALAR_PIXELS`, the
+    raster profiles and fps A/Bs of the rasteriser. Otherwise those
+    switches measure nothing. `E:\blinx2_altbuild\Release\run_alt.ps1` and
+    `exact_replay.ps1` already default to it.
+  - Gates passed before the switch (`006a63e`):
+    - compare mode on the exact rain recording: max 0.22% of pixels,
+      median 0.076%;
+    - stage 01-01 sea on Vulkan: 0 flashes, reflections correct; compare
+      max 0.26% in gameplay;
+    - fault injection `RECOMP_VK_FAIL_AT=<n>` (the nth submit is never
+      sent): the game carries on in software.
+  - `RECOMP_GPU=vulkan` spells out the default.
   - `RECOMP_VK_PRESENT=1` presents the software frame through a swapchain.
   - `RECOMP_VK_COMPARE=1` runs both renderers and logs `[VKCMP]` diffs
     (`RECOMP_VK_COMPARE_DUMP=<prefix>` dumps them).
@@ -313,11 +336,9 @@ py -3 -m tools.recomp       E:\Blinx2project\game_files\default.xbe --all --spli
     back, a windowed run does it one frame late without waiting, and
     dumps are exact. Rain stage on the exact recording `20261014-080836`:
     Vulkan median 39 fps (p10 26), software 23 (p10 18).
-  - `blinx2-recomp\play_vulkan.bat` (`738a96c`) plays with
-    `RECOMP_GPU=vulkan`, falling back to software when Vulkan is unusable.
-    Otherwise it is a plain double-click. Windowed: hub 30 fps, rain median
-    31. `RECOMP_VK_PRESENT=1` (swapchain presentation) is left out: the
-    client area captures white (investigating, blinx2project-11).
+  - Windowed Vulkan: hub 30 fps, rain median 31. `RECOMP_VK_PRESENT=1`
+    (swapchain presentation) stays off: the client area captures white
+    (investigating, blinx2project-11).
 
   Parity in stage 01-03 (input replay, compare mode, 2026-10-14): at most
   0.14% of pixels in every gameplay stretch, 0.115% overall. Only the
