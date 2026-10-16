@@ -438,6 +438,19 @@ User-facing build, run and Steam Deck notes are in blinx2-recomp's README
 `linux/build-in-docker.sh`). Read-only installs keep logs and settings in
 `$XDG_STATE_HOME/blinx2-recomp`.
 
+**Portable maths** (xboxrecomp `8e67b34`, a lifter change):
+- The gen calls `recomp_fsin/fcos/ftan/fatan2/flog2/fexp2`
+  (`src/kernel/recomp_math.c`) for the x87 transcendentals. A **new gen
+  needs runtime >= `8e67b34`**; an old gen still links.
+- By default these are the same libm calls (bit-identical; the exact
+  replays are unchanged).
+- `RECOMP_PORTABLE_MATH=1` uses one fdlibm-derived implementation with
+  the same bits under MSVC, gcc and clang, for netplay and cross-OS
+  replays. A schedule records it (tag `0x03`), and a replay follows the
+  recording, not the environment.
+- Windows-record / Linux-replay still diverges early on USB/OHCI
+  enumeration timing (being worked on).
+
 - **Packages:** builds with gcc/clang. On Ubuntu 24.04 install
   `build-essential cmake ninja-build clang libsdl2-dev libvulkan-dev
   libssl-dev libepoxy-dev libgl-dev`.
