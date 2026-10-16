@@ -475,11 +475,35 @@ User-facing build, run and Steam Deck notes are in blinx2-recomp's README
 
 - Retail NA XBE, title ID `0x4D530065`, LTCG build (`c:\B\Final - LTCG\...`),
   base `0x00010000`, 73 sections, 121 kernel imports.
-- **Current count (2026-10-14, xboxrecomp `f9133b1`, blinx2-recomp `a3d3935`
-  seeds, 65 entries):** 10,610 dispatchable functions, 190 unresolved stubs.
-  None of the stubs was hit in any log so far. 184 are calls into the
-  middle of a body, 6 are outside the image.
-  On 2026-10-12 it was 10,565 functions and 196 stubs, with 45 gen `.c` files.
+- **Current count (2026-10-16, xboxrecomp `d45fa16`+, blinx2-recomp
+  `7171001` seeds, 66 entries):** 10,604 dispatchable functions, 188
+  unresolved stubs. On 2026-10-14 it was 10,610 and 190, and on 2026-10-12
+  10,565 and 196.
+- **Hang classes seen so far, and how to tell them apart in a recording:**
+  - **An unresolved stub hit** (`[STUB] unresolved 0x... called`): a call
+    the gen silently skips.
+    - Carlos's shop (2026-10-15): the dialogue never advanced. `[PERF]`
+      fps 0 in the shop is not the symptom. That counter is the title's
+      vblank-paced frame count, and the shop does not use it (the
+      executor kept flipping about 16/s).
+    - Cause: a two-case switch table (`jmp [ecx*4+0x1CE000]`) decoded as
+      `call 0x1CFCE8`, a false start mid-instruction in the shop's state
+      machine `sub_001CFCA0`. Its own `jp` became the stub.
+    - Fixed at the root in xboxrecomp `d45fa16`: 2-entry tables with a
+      local dispatch and arms are data. That removed 3 false starts. A
+      coalesce entry cannot fix it, because the coalescer refuses an
+      interior start that a call points at.
+  - **An unresolved indirect call** (`[ICALL] Failed to resolve VA ...`,
+    every frame): a pointer-only function, so seed it.
+    - The locker room (2026-10-15): `0x003497E0` is an SRCADV callback in
+      the DATADV table at `0x0112E510`; seeded in `7171001`.
+    - The call resolves now, but driven live the locker menu still does
+      not react to A. A second cause is open (P7).
+  - Verify a fix whose code path the recording took with a **live** run
+    (`E:\blinx2_altbuild\Release\shop_live.ps1 -Rec <recording copy>`).
+    It replays the human's input loosely, then presses A and dumps
+    frames. The exact replay diverges as soon as the fixed code behaves
+    differently, so it only shows that the stub or ICALL is gone.
   `0x000EF540`, the stage 01-01 load-completion callback, is seeded; without
   it the mission summary never appears. On 2026-10-10 the count was 10,549
   functions and 204 stubs. The earlier "23,753" figure did not match the disasm summary, which
