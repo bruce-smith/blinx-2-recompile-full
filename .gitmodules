@@ -6,3 +6,7 @@
 	path = blinx2-recomp
 	url = https://github.com/bruce-smith/Blinx2-Recompiled.git
 	branch = main
+[submodule "launcher"]
+	path = launcher
+	url = https://github.com/bruce-smith/Blinx2-Launcher.git
+	branch = main
